@@ -1,0 +1,3 @@
+alias run="python3 sim.py"
+alias edit="vim sim.py"
+alias setup="vim setup"
