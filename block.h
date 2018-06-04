@@ -1,4 +1,4 @@
-#define SUPER_EMPTY_BYTES 236
+#define SUPER_EMPTY_BYTES 234
 #define INODE_EMPTY_BYTES 239
 #define EXTENT_EMPTY_BYTES 250
 #define FREE_EMPTY_BYTES 252
@@ -32,6 +32,7 @@ typedef struct
    BlockDetails details;
    InodeBlock *rootInode;
    unsigned char **blockStatuses;
+   unsigned short currFileNum;
    unsigned char empty[SUPER_EMPTY_BYTES];
 } SuperBlock;
 
