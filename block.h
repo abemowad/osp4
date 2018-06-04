@@ -43,7 +43,7 @@ typedef struct
    unsigned char empty[EXTENT_EMPTY_BYTES];
 } FileExtentBlock;
 
-/* free block - block type number 4, ready for future writes. all blocks in disk
+/* free block - block type #4, ready for future writes. all blocks in disk
  * initially instantiated as FreeBlocks. */
 typedef struct 
 {
