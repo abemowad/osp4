@@ -1,79 +1,50 @@
-#include "TinyFS_errno.h"
 #include "unistd.h"
 #include "sys/types.h"
+#include "sys/stat.h"
+#include "fcntl.h"
+#include "unistd.h"
 
-/* This function opens a regular UNIX file and designates the first nBytes
-of it as space for the emulated disk. nBytes should be a number that is
-evenly divisible by the block size. If nBytes > 0 and there is already a file
-by the given filename, that disk is resized to nBytes, and that file’s
-contents may be overwritten. If nBytes is 0, an existing disk is opened, and
-should not be overwritten. There is no requirement to maintain integrity of
-any content beyond nBytes. The return value is -1 on failure or a disk number
-on success. */
-int openDisk(char *filename, int nBytes)
-{
-   if (access(filename, R_OK & W_OK) == 0) {  /* unsure of how permissions need to work at this point */
+/* Makes a blank TinyFS file system of size nBytes on the file specified by
+‘filename’. This function should use the emulated disk library to open the
+specified file, and upon success, format the file to be mountable. This
+includes initializing all data to 0x00, setting magic numbers, initializing
+and writing the superblock and inodes, etc. Must return a specified
+success/error code. */
+int tfs_mkfs(char *filename, int nBytes);
 
-      if (nBytes > 0) {
-         if (truncate(filename, nBytes) != 0) {
-            perror(NULL);
-            return -1;
-         }
-      }
-      
-      else if (nBytes == 0) {
-         open(filename, O_RDWR);
-      }
-          
-   }
+/* tfs_mount(char *filename) "mounts" a TinyFS file system located within
+‘filename'. fs_unmount(void) “unmounts” the currently mounted file system.
+As part of the mount operation, tfs_mount should verify the file system is
+the correct type. Only one file system may be mounted at a time. Use
+tfs_unmount to cleanly unmount the currently mounted file system. Must return
+a specified success/error code. */
+int tfs_mount(char *filename);
+int tfs_unmount(void);
 
-   else if (!(access(filename, F_OK))) {  /* no file currently exists, need to create new one */
+/* Opens a file for reading and writing on the currently mounted file system.
+Creates a dynamic resource table entry for the file, and returns a file
+descriptor (integer) that can be used to reference this file while the
+filesystem is mounted. */
+fileDescriptor tfs_openFile(char *name);
 
-      if (nBytes > 0) {
-         open(filename, O_RDWR);
-      }
+/* Closes the file, de-allocates all system/disk resources, and removes table
+entry */
+int tfs_closeFile(fileDescriptor FD);
 
-   }
+/* Writes buffer ‘buffer’ of size ‘size’, which represents an entire file’s
+content, to the file system. Sets the file pointer to 0 (the start of file)
+when done. Returns success/error codes. */
+int tfs_writeFile(fileDescriptor FD, char *buffer, int size);
 
-   else {  /* File exists but permissions are denied */
-      perror(NULL);
-      return -1;
-   }
+/* deletes a file and marks its blocks as free on disk. */
+int tfs_deleteFile(fileDescriptor FD);
 
-   return 0; /* TODO: need to return disk number */
-}
+/* reads one byte from the file and copies it to buffer, using the current
+file pointer location and incrementing it by one upon success. If the file
+pointer is already at the end of the file then tfs_readByte() should return
+an error and not increment the file pointer. */
+int tfs_readByte(fileDescriptor FD, char *buffer);
 
-/* readBlock() reads an entire block of BLOCKSIZE bytes from the open disk
-(identified by ‘disk’) and copies the result into a local buffer (must be at
-least of BLOCKSIZE bytes). The bNum is a logical block number, which must be
-translated into a byte offset within the disk. The translation from logical
-to physical block is straightforward: bNum=0 is the very first byte of the
-file. bNum=1 is BLOCKSIZE bytes into the disk, bNum=n is n*BLOCKSIZE bytes
-into the disk. On success, it returns 0. -1 or smaller is returned if disk is
-not available (hasn’t been opened) or any other failures. You must define
-your own error code system. */
-int readBlock(int disk, int bNum, void *block)
-{
-
-}
-
-/* writeBlock() takes disk number ‘disk’ and logical block number ‘bNum’ and
-writes the content of the buffer ‘block’ to that location. BLOCKSIZE bytes
-will be written from ‘block’ regardless of its actual size. The disk must be
-open. Just as in readBlock(), writeBlock() must translate the logical block
-bNum to the correct byte position in the file. On success, it returns 0. -1
-or smaller is returned if disk is not available (i.e. hasn’t been opened) or
-any other failures. You must define your own error code system. */
-int writeBlock(int disk, int bNum, void *block)
-{
-
-}
-
-/* closeDisk() takes a disk number ‘disk’ and makes the disk closed to
-further I/O; i.e. any subsequent reads or writes to a closed disk should
-return an error. Closing a disk should also close the underlying file,
-committing any writes being buffered by the real OS. */
-void closeDisk(int disk)
-{
-
-}
+/* change the file pointer location to
+success/error codes.*/
+int tfs_seek(fileDescriptor FD, int offset);
