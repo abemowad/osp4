@@ -1,3 +1,4 @@
-alias run="python3 sim.py"
-alias edit="vim sim.py"
-alias setup="vim setup"
+alias run="./a.out"
+alias disk="vim libDisk.c"
+alias fs="vim libTinyFS.c"
+alias make="gcc *.c"
