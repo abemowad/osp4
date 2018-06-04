@@ -1,4 +1,4 @@
-#define SUPER_EMPTY_BYTES 234
+#define SUPER_EMPTY_BYTES 242
 #define INODE_EMPTY_BYTES 239
 #define EXTENT_EMPTY_BYTES 250
 #define FREE_EMPTY_BYTES 252
@@ -26,12 +26,11 @@ typedef struct
 } InodeBlock;
 
 /* superblock block - block type #1. contains pointer to root inode and 
- * pointer to array that records status of blocks as free or in use */
+ * the number of the last file created in the file system */
 typedef struct
 {
    BlockDetails details;
    InodeBlock *rootInode;
-   unsigned char **blockStatuses;
    unsigned short currFileNum;
    unsigned char empty[SUPER_EMPTY_BYTES];
 } SuperBlock;

@@ -42,8 +42,11 @@ int writeBlock(int disk, int bNum, void *block)
 
 }
 
-
+/* closeDisk() takes a disk number ‘disk’ and makes the disk closed to 
+ * further I/O; i.e. any subsequent reads or writes to a closed disk should
+ * return an error. Closing a disk should also close the underlying file, 
+ * committing any writes being buffered by the real OS. */
 void closeDisk(int disk)
 {
-
-}
+   
+}  
