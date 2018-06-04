@@ -1,8 +1,16 @@
+#ifndef LIBTINYFS_H
+#define LIBTINYFS_H
+
 #include "unistd.h"
 #include "sys/types.h"
 #include "sys/stat.h"
 #include "fcntl.h"
 #include "unistd.h"
+
+#define DEFAULT_DISK_SIZE 10240
+#define DEFAULT_DISK_NAME "tinyFSDisk"
+
+typedef int fileDescriptor;
 
 /* Makes a blank TinyFS file system of size nBytes on the file specified by
 ‘filename’. This function should use the emulated disk library to open the
@@ -48,3 +56,5 @@ int tfs_readByte(fileDescriptor FD, char *buffer);
 /* change the file pointer location to
 success/error codes.*/
 int tfs_seek(fileDescriptor FD, int offset);
+
+#endif
