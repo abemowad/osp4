@@ -13,7 +13,7 @@
 
 #define DEFAULT_DISK_SIZE 10240
 #define DEFAULT_DISK_NAME "tinyFSDisk"
-
+#define WRITE_FLAG        0666
 
 /* A struct that holds an entry in the global disk table. Each entry has a 
 pointer to a disk containing a passed in number of blocks, along with a
@@ -26,7 +26,7 @@ typedef struct DiskTableEntry
 
 
 extern int curDiskNum;
-extern FreeBlock **diskTable;
+extern DiskTableEntry *diskTable;
 
 /* This function opens a regular UNIX file and designates the first nBytes
 of it as space for the emulated disk. nBytes should be a number that is

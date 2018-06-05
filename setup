@@ -1,4 +1,8 @@
 alias run="./a.out"
 alias disk="vim libDisk.c"
+alias diskh="vim libDisk.h"
 alias fs="vim libTinyFS.c"
+alias fsh="vim libTinyFS.h"
+alias block="vim block.h"
+alias edit="vim main.c"
 alias make="gcc *.c"
