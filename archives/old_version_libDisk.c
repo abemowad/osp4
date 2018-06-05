@@ -2,7 +2,7 @@
 #include "TinyFS_errno.h"
 
 int curDiskNum = 0;
-DiskTableEntry *diskTable;
+FreeBlock **diskTable;
 
 
 int openDisk(char *filename, int nBytes)
@@ -36,10 +36,9 @@ int openDisk(char *filename, int nBytes)
 
 int readBlock(int disk, int bNum, void *block)
 {
-   SuperBlock superBlock = (SuperBlock)diskTable[disk][0]; 
    FreeBlock diskBlock = diskTable[disk][bNum]; /* Block offset within the specified disk */
 
-   if (superBlock.isClosed) {
+   if (diskBlock.isClosed) {
       return DISKCLOSED;  /* need more specific behavior with error codes? */
    }
 
@@ -51,15 +50,7 @@ int readBlock(int disk, int bNum, void *block)
 
 int writeBlock(int disk, int bNum, void *block)
 {
-   SuperBlock superBlock = (SuperBlock)diskTable[disk][0]; 
 
-   if (superBlock.isClosed) {
-      return DISKCLOSED;  /* need more specific behavior with error codes? */
-   }
-
-   diskTable[disk][bNum] = *((FreeBlock*)block);
-
-   return 0;
 }
 
 /* closeDisk() takes a disk number ‘disk’ and makes the disk closed to 
@@ -68,6 +59,5 @@ int writeBlock(int disk, int bNum, void *block)
  * committing any writes being buffered by the real OS. */
 void closeDisk(int disk)
 {
-   SuperBlock superBlock = (SuperBlock)diskTable[disk][0]; 
-   superBlock.isClosed = 1;
-} 
+   
+}  

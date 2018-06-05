@@ -9,5 +9,7 @@
 
 #define BLOCKSIZE 256
 
+#define DISKCLOSED -2
+
 
 #endif

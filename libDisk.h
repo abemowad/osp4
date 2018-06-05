@@ -14,6 +14,17 @@
 #define DEFAULT_DISK_SIZE 10240
 #define DEFAULT_DISK_NAME "tinyFSDisk"
 
+
+/* A struct that holds an entry in the global disk table. Each entry has a 
+pointer to a disk containing a passed in number of blocks, along with a
+pointer to a filename used when mounting the disk */
+typedef struct DiskTableEntry
+{
+   char *filename;
+   FreeBlock **disk; /* A pointer to an array of blocks */
+} DiskTableEntry;
+
+
 extern int curDiskNum;
 extern FreeBlock **diskTable;
 
