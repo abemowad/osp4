@@ -4,7 +4,6 @@
 int curDiskNum = 0;
 DiskTableEntry *diskTable;
 
-
 int openDisk(char *filename, int nBytes)
 {
    if (access(filename, R_OK & W_OK) == 0) {  
