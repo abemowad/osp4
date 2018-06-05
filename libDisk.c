@@ -1,10 +1,12 @@
 #include "libDisk.h"
 
 int curDiskNum = 0;
+FreeBlock **diskTable;
+
 
 int openDisk(char *filename, int nBytes)
 {
-   if (access(filename, R_OK & W_OK) == 0) {  /* unsure of how permissions need to work at this point */
+   if (access(filename, R_OK & W_OK) == 0) {  
       if (nBytes > 0) {
          if (truncate(filename, nBytes) != 0) {
             perror(NULL);
@@ -33,7 +35,7 @@ int openDisk(char *filename, int nBytes)
 
 int readBlock(int disk, int bNum, void *block)
 {
-
+      
 }
 
 
