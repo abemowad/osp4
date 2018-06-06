@@ -9,7 +9,8 @@
 
 #define BLOCKSIZE 256
 
-#define DISKCLOSED -2
+#define diskClosedErr -2
+#define outOfDiskBoundsErr -3
 
 
 #endif

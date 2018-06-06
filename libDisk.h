@@ -7,6 +7,8 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "TinyFS_errno.h"
 #include "block.h"
@@ -15,17 +17,20 @@
 #define DEFAULT_DISK_NAME "tinyFSDisk"
 #define WRITE_FLAG        0666
 
+
 /* A struct that holds an entry in the global disk table. Each entry has a 
 pointer to a disk containing a passed in number of blocks, along with a
 pointer to a filename used when mounting the disk */
 typedef struct DiskTableEntry
 {
+   FILE *diskFile;
    char *filename;
-   FreeBlock **disk; /* A pointer to an array of blocks */
+   char diskNum; 
+   char isMounted;
 } DiskTableEntry;
 
 
-extern int curDiskNum;
+extern int totalDisks;
 extern DiskTableEntry *diskTable;
 
 /* This function opens a regular UNIX file and designates the first nBytes
