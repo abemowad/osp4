@@ -23,8 +23,8 @@ pointer to a disk containing a passed in number of blocks, along with a
 pointer to a filename used when mounting the disk */
 typedef struct DiskTableEntry
 {
-   FILE *diskFile;
    char *filename;
+   FILE *diskFile;
    char diskNum; 
    char isMounted;
 } DiskTableEntry;
