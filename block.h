@@ -1,3 +1,6 @@
+#ifndef BLOCK_H
+#define BLOCK_H
+
 #define SUPER_EMPTY_BYTES 1
 #define SUPER_TABLE_SIZE 1
 #define INODE_EMPTY_BYTES 239
@@ -55,3 +58,5 @@ typedef struct
    BlockDetails details;
    unsigned char empty[FREE_EMPTY_BYTES];
 } FreeBlock;
+
+#endif

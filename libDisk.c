@@ -74,7 +74,6 @@ int openDisk(char *filename, int nBytes)
    
    if (nBytes == 0) {
       diskNum = openExistingDisk(filename);
-      diskTable[diskNum].isMounted = 1; /* if user opens the existing disk with 0 bytes, mount */
       if (diskNum == -1) {
          printf("No disk associated with %s\n", filename);
          return -1;
@@ -95,11 +94,9 @@ int openDisk(char *filename, int nBytes)
    else {
       return -1;
    }
-   /*
    if (diskNum > -1) {
       diskTable[diskNum].isMounted = 1; 
    }
-   */
    
    return diskNum;
 }
@@ -120,7 +117,6 @@ int readBlock(int disk, int bNum, void *block)
    }
 
    readSize = fread(block, BLOCKSIZE, 1, diskFile);
-   fprintf(stderr, "readsize: %i\n", readSize);
 
    return 0;
 }
@@ -131,6 +127,7 @@ int writeBlock(int disk, int bNum, void *block)
    char *filename = diskTable[disk].filename;
    FILE *diskFile = diskTable[disk].diskFile;
 
+
    if (!(diskTable[disk].isMounted) || (disk >= totalDisks)) {
       return diskClosedErr; /* either disk not mounted or out of range of table */
    }
@@ -140,7 +137,6 @@ int writeBlock(int disk, int bNum, void *block)
    }
 
    writeSize = fwrite(block, BLOCKSIZE, 1, diskFile);
-   fprintf(stderr, "writesize: %i\n", writeSize);
 
    return 0;
 }
@@ -161,7 +157,7 @@ void printEntry(int disk) {
    if (diskTable != NULL) {
       fprintf(stderr, "------------: \n");
       fprintf(stderr, "filename: %s\n", diskTable[disk].filename);
-      fprintf(stderr, "diskfile: %x\n", diskTable[disk].diskFile);
+      //fprintf(stderr, "diskfile: %x\n", diskTable[disk].diskFile);
       fprintf(stderr, "disknum: %i\n", diskTable[disk].diskNum);
       fprintf(stderr, "ismounted: %i\n", diskTable[disk].isMounted);
       fprintf(stderr, "------------: \n");

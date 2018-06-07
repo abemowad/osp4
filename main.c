@@ -5,35 +5,34 @@ int openDisk(char *filename, int nBytes);
 
 int main()
 {
-   int diskNum, writeBlocks, readBlocks;
+   SuperBlock superblock;
+   InodeBlock inodeblock;
+   int diskNum, writeBlocks, readBlocks, err;
    char writeBuf[256] = "Hello there master Luke";
    char readBuf[256];
+
+   err = tfs_mkfs("moo.txt", 2560); 
    
-   diskNum = openDisk("too.txt", 1024);
-
-
-   fprintf(stderr, "Disk 0 mount status: %d\n", diskTable[0].isMounted);
-   tfs_unmount();
-   fprintf(stderr, "mountedDisk: %d\n", mountedDisk);
-   fprintf(stderr, "Disk 0 mount status: %d\n", diskTable[0].isMounted);
-   tfs_mount("too.txt");
-   fprintf(stderr, "mountedDisk: %d\n", mountedDisk);
-   fprintf(stderr, "Disk 0 mount status: %d\n", diskTable[0].isMounted);
-
-   diskNum = openDisk("moo.txt", 1024);
-
-   fprintf(stderr, "mountedDisk: %d\n", mountedDisk);
-
-   fprintf(stderr, "mountedDisk: %d\n", mountedDisk);
+   fprintf(stderr, "Should be unmounted: %d\n", mountedDisk);
    tfs_mount("moo.txt");
-   fprintf(stderr, "mountedDisk: %d\n", mountedDisk);
+   fprintf(stderr, "Should be mounted: %d\n", mountedDisk);
 
-   tfs_mount("too.txt");
+
+
    fprintf(stderr,"====================\n");
-   writeBlocks = writeBlock(0, 0, writeBuf);
-   fprintf(stderr, "Written: %d\n", writeBlocks);
    
-   readBlocks = readBlock(0, 0, readBuf);
-   fprintf(stderr, "Read: %d\n", readBlocks);
-   fprintf(stderr, "Read: %s\n", readBuf);
+   readBlocks = readBlock(mountedDisk, 0, readBuf);
+
+   superblock = *((SuperBlock*)readBuf);
+   fprintf(stderr, "sb type: %d\n", superblock.details.type);
+   fprintf(stderr, "sb magicnum: %d\n", superblock.details.magicNum);
+   fprintf(stderr, "sb rootBlock: %d\n", superblock.rootInodeBlock);
+   fprintf(stderr, "sb fileNum: %d\n", superblock.currFileNum);
+   fprintf(stderr, "sb num blocks: %d\n\n", superblock.numBlocks);
+
+   readBlocks = readBlock(mountedDisk, 1, readBuf);
+   inodeblock = *((InodeBlock*)readBuf);
+   fprintf(stderr, "inode type: %d\n", inodeblock.details.type);
+   fprintf(stderr, "inode magicnum: %d\n", inodeblock.details.magicNum);
+   fprintf(stderr, "inode filename: %s\n", inodeblock.fileName);
 }
