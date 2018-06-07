@@ -1,4 +1,5 @@
-#define SUPER_EMPTY_BYTES 239
+#define SUPER_EMPTY_BYTES 1
+#define SUPER_TABLE_SIZE 1
 #define INODE_EMPTY_BYTES 239
 #define EXTENT_EMPTY_BYTES 250
 #define FREE_EMPTY_BYTES 252
@@ -31,10 +32,11 @@ typedef struct
 typedef struct
 {
    BlockDetails details;
-   InodeBlock *rootInode;
+   unsigned short rootInodeBlock;
    unsigned short currFileNum;
    unsigned char isClosed;
    unsigned short numBlocks;
+   unsigned short fileTable[SUPER_TABLE_SIZE];
    unsigned char empty[SUPER_EMPTY_BYTES];
 } SuperBlock;
 

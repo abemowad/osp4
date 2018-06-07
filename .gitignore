@@ -2,3 +2,4 @@ test_main.c
 moo.txt
 test_main.c
 a.out
+*.swp

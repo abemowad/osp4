@@ -10,6 +10,7 @@
 #define DEFAULT_DISK_SIZE 10240
 #define DEFAULT_DISK_NAME "tinyFSDisk"
 
+int mountedDisk;
 typedef int fileDescriptor;
 
 /* Makes a blank TinyFS file system of size nBytes on the file specified by
