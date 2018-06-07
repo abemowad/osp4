@@ -74,6 +74,11 @@ int openDisk(char *filename, int nBytes)
    
    if (nBytes == 0) {
       diskNum = openExistingDisk(filename);
+      diskTable[diskNum].isMounted = 1; /* if user opens the existing disk with 0 bytes, mount */
+      if (diskNum == -1) {
+         printf("No disk associated with %s\n", filename);
+         return -1;
+      }
    }
 
    else if (nBytes > 0)
@@ -90,9 +95,12 @@ int openDisk(char *filename, int nBytes)
    else {
       return -1;
    }
-   if (diskNum > -1) { 
-      diskTable[diskNum].isMounted = 1;
+   /*
+   if (diskNum > -1) {
+      diskTable[diskNum].isMounted = 1; 
    }
+   */
+   
    return diskNum;
 }
 

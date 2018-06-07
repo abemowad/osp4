@@ -12,6 +12,7 @@
 #define diskClosedErr -2
 #define outOfDiskBoundsErr -3
 #define diskReadErr -4
+#define noMountedDiskErr -5
 
 
 #endif
