@@ -1,8 +1,17 @@
-#define SUPER_EMPTY_BYTES 239
-#define INODE_EMPTY_BYTES 239
+#ifndef BLOCK_H
+#define BLOCK_H
+
+#define SUPER_BLOCK_TYPE   1
+#define INODE_BLOCK_TYPE   2
+#define EXTENT_BLOCK_TYPE  3
+#define FREE_BLOCK_TYPE    4
+   
+#define SUPER_EMPTY_BYTES  239
+#define INODE_EMPTY_BYTES  233
 #define EXTENT_EMPTY_BYTES 250
-#define FREE_EMPTY_BYTES 252
-#define MAX_NAME_LEN 9
+#define FREE_EMPTY_BYTES   252
+#define MAX_NAME_LEN       9
+#define BLOCK_DETAIL_BYTES 6
 
 /* all block types have this information. type refers to block type number,
  * magicNum refers to the number used for checking if  data is corrupted,
@@ -20,9 +29,11 @@ typedef struct
 {
    BlockDetails details;
    unsigned char fileName[MAX_NAME_LEN];
-   unsigned short fileSize;
-   unsigned short lastIndex;
-   unsigned char empty[INODE_EMPTY_BYTES];  
+   unsigned int fileSize;
+   unsigned int FP;
+   unsigned int startFP;
+   unsigned short numBlocks;
+   char empty[INODE_EMPTY_BYTES];  
 } InodeBlock;
 
 /* superblock block - block type #1. contains pointer to root inode, 
@@ -35,7 +46,7 @@ typedef struct
    unsigned short currFileNum;
    unsigned char isClosed;
    unsigned short numBlocks;
-   unsigned char empty[SUPER_EMPTY_BYTES];
+   char empty[SUPER_EMPTY_BYTES];
 } SuperBlock;
 
 /* file extent block - block type #3. contains block index of file inode. */
@@ -43,7 +54,7 @@ typedef struct
 {
    BlockDetails details;
    unsigned short inodeIndex;
-   unsigned char empty[EXTENT_EMPTY_BYTES];
+   char data[EXTENT_EMPTY_BYTES];
 } FileExtentBlock;
 
 /* free block - block type #4, ready for future writes. all blocks in disk
@@ -51,5 +62,5 @@ typedef struct
 typedef struct 
 {
    BlockDetails details;
-   unsigned char empty[FREE_EMPTY_BYTES];
+   char empty[FREE_EMPTY_BYTES];
 } FreeBlock;
