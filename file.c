@@ -11,6 +11,7 @@
  * 4) edit write to check if closed
  * 5) inode block next
  * 6) inodeTable stuff changed now you need to index disk table
+ * 7) change int FDs to fileDescriptor FDs
  */ 
 
 /* creates inode block for new file */
@@ -33,16 +34,37 @@ InodeBlock createInodeBlock(char *name)
    inodeBlock.isClosed = 0;
 }
 
+/* inserts inode into disk's inode table and returns fd */
+fileDescriptor insertNewInode(InodeBlock inodeBlock)
+{
+   int i;
+   fileDescriptor FD;
+
+   FD = -1;
+   for (i = 1; i < SUPER_TABLE_SIZE; i++)
+   {
+      if (diskTable[curDiskNum].inodeTable[i].fileSize == -1)
+      {
+         diskTable[curDiskNum].inodeTable[i] = inodeBlock;
+         FD = i;
+         break;
+      }
+   }
+   return FD;
+}
+
 /* Opens a file for reading and writing on the currently mounted file system. 
  * Creates a dynamic resource table entry for the file, and returns a file 
  * descriptor (integer) that can be used to reference this file while the 
  * filesystem is mounted. */
 fileDescriptor tfs_openFile(char *name)
 {
+   fileDescriptor FD;
    InodeBlock inodeBlock;
 
    inodeBlock = createInodeBlock(name);
-    
+   FD = insertNewInode(inodeBlock);
+   return FD; 
 }
 
 /* returns EOF FP */
