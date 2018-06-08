@@ -2,12 +2,48 @@
 #include <stdlib.h>
 
 #include "block.h"
+#include "string.h"
 
 /* ----  TO DO  ----
  * 1) Create fileTable
  * 2) Create inodeTable
  * 3) Make sure file is updated upon every modification of blocks
+ * 4) edit write to check if closed
+ * 5) inode block next
+ * 6) inodeTable stuff changed now you need to index disk table
  */ 
+
+/* creates inode block for new file */
+InodeBlock createInodeBlock(char *name)
+{
+   InodeBlock inodeBlock;
+
+   inodeBlock.details.type = INODE_BLOCK_TYPE;
+   inodeBlock.details.magicNum = MAGIC_NUMBER;
+
+   /* this needs to be the actual next block not 0 */
+   inodeBlock.details.next = 0;
+
+   strcpy(inodeBlock.fileName, name);
+
+   inodeBlock.fileSize = 0;
+   inodeBlock.FP = inodeBlock.next * BLOCKSIZE + BLOCK_DETAIL_BYTES;
+   inodeBlock.startFP = inodeBlock.FP;
+   inodeBlock.numBlocks = 0;
+   inodeBlock.isClosed = 0;
+}
+
+/* Opens a file for reading and writing on the currently mounted file system. 
+ * Creates a dynamic resource table entry for the file, and returns a file 
+ * descriptor (integer) that can be used to reference this file while the 
+ * filesystem is mounted. */
+fileDescriptor tfs_openFile(char *name)
+{
+   InodeBlock inodeBlock;
+
+   inodeBlock = createInodeBlock(name);
+    
+}
 
 /* returns EOF FP */
 int getMaxFP(fileDescriptor FD)

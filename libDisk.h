@@ -27,6 +27,8 @@ typedef struct DiskTableEntry
    FILE *diskFile;
    char diskNum; 
    char isMounted;
+   InodeBlock inodeTable[SUPER_TABLE_SIZE];
+   int tableFD[SUPER_TABLE];
 } DiskTableEntry;
 
 

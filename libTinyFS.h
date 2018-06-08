@@ -13,6 +13,7 @@
 
 int mountedDisk;
 typedef int fileDescriptor;
+InodeBlock inodeTable[]
 
 /* Makes a blank TinyFS file system of size nBytes on the file specified by
 ‘filename’. This function should use the emulated disk library to open the
