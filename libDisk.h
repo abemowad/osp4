@@ -20,7 +20,8 @@
 
 /* A struct that holds an entry in the global disk table. Each entry has a 
 pointer to a disk containing a passed in number of blocks, along with a
-pointer to a filename used when mounting the disk */
+pointer to a filename used when mounting the disk. Additionally, each disk
+has an array of inodes, each inode representing a file in the disk */
 typedef struct DiskTableEntry
 {
    char *filename;

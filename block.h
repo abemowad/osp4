@@ -2,7 +2,7 @@
 #define BLOCK_H
 
 #define SUPER_EMPTY_BYTES 1
-#define SUPER_TABLE_SIZE 1
+#define SUPER_TABLE_SIZE 119
 #define INODE_EMPTY_BYTES 239
 
 #define SUPER_BLOCK_TYPE   1
@@ -37,6 +37,7 @@ typedef struct
    unsigned int FP;
    unsigned int startFP;
    unsigned short numBlocks;
+   unsigned char isClosed;
    char empty[INODE_EMPTY_BYTES];  
 } InodeBlock;
 
