@@ -2,22 +2,24 @@
 #define BLOCK_H
 
 <<<<<<< HEAD
-#define SUPER_EMPTY_BYTES 1
-#define SUPER_TABLE_SIZE 1
-#define INODE_EMPTY_BYTES 239
 =======
+#define SUPER_EMPTY_BYTES 1
+#define SUPER_TABLE_SIZE 119
+#define INODE_EMPTY_BYTES 239
+
+>>>>>>> 8022a0f35bff26ba1ba59981b8dbe93937309923
 #define SUPER_BLOCK_TYPE   1
 #define INODE_BLOCK_TYPE   2
 #define EXTENT_BLOCK_TYPE  3
 #define FREE_BLOCK_TYPE    4
-   
-#define SUPER_EMPTY_BYTES  239
-#define INODE_EMPTY_BYTES  233
->>>>>>> e1e909108a7f1123d0700e75033abda4ea5e25b1
+
+#define SUPER_TABLE_SIZE   122   
+#define SUPER_EMPTY_BYTES  1
+#define INODE_EMPTY_BYTES  223
 #define EXTENT_EMPTY_BYTES 250
 #define FREE_EMPTY_BYTES   252
 #define MAX_NAME_LEN       9
-#define BLOCK_DETAIL_BYTES 6
+#define BLOCK_DETAIL_BYTES 4
 
 /* all block types have this information. type refers to block type number,
  * magicNum refers to the number used for checking if  data is corrupted,
@@ -29,16 +31,27 @@ typedef struct
    unsigned short next;
 }  BlockDetails;
 
+/* all block types have this information. type refers to block type number,
+ * next refers to the index of the next block in the disk  */
+typedef struct
+{
+   unsigned char created;
+   unsigned char accessed;
+   unsigned char modified;
+}  TimeStamp;
+
 /* inode block - block type #2. fileName is up to 8 chars, fileSize refers to
  * number of blocks in file, lastIndex is last block index of file */
 typedef struct
 {
    BlockDetails details;
    unsigned char fileName[MAX_NAME_LEN];
-   unsigned int fileSize;
+   int fileSize;
    unsigned int FP;
    unsigned int startFP;
    unsigned short numBlocks;
+   unsigned short location;
+   int isClosed;
    char empty[INODE_EMPTY_BYTES];  
 } InodeBlock;
 
@@ -49,15 +62,11 @@ typedef struct
 {
    BlockDetails details;
    unsigned short rootInodeBlock;
-   unsigned short currFileNum;
+   unsigned short totalFileNum;
    unsigned char isClosed;
    unsigned short numBlocks;
-<<<<<<< HEAD
    unsigned short fileTable[SUPER_TABLE_SIZE];
-   unsigned char empty[SUPER_EMPTY_BYTES];
-=======
    char empty[SUPER_EMPTY_BYTES];
->>>>>>> e1e909108a7f1123d0700e75033abda4ea5e25b1
 } SuperBlock;
 
 /* file extent block - block type #3. contains block index of file inode. */
