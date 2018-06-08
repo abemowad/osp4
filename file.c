@@ -1,18 +1,38 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "block.h"
 #include "string.h"
+#include "block.h"
+#include "libTinyFS.h"
+#include "libDisk.h"
 
 /* ----  TO DO  ----
- * 1) Create fileTable
- * 2) Create inodeTable
- * 3) Make sure file is updated upon every modification of blocks
+ * 1) edit open to check if closed
+ * 2) open should change FD table and closedInode table
+ * 3) closed should change FD table and closedInode table
  * 4) edit write to check if closed
- * 5) inode block next
- * 6) inodeTable stuff changed now you need to index disk table
- * 7) change int FDs to fileDescriptor FDs
+ * 5) edit write to check if space
  */ 
+
+unsigned short nextFreeBlock()
+{
+   int i;
+   unsigned short blockNum;
+   char someBlock[BLOCKSIZE];
+
+   blockNum = 0;
+   for (i = 2; i < diskTable[mountedDisk].superBlock.numBlocks; i++)
+   { 
+      if (readBlock(mountedDisk, i, &someBlock) != 0)
+         return -1;
+      if (someBlock[0] == FREE_BLOCK_TYPE)
+      {
+         blockNum = i;
+         break;
+      }
+   }      
+   return blockNum;
+}
 
 /* creates inode block for new file */
 InodeBlock createInodeBlock(char *name)
@@ -21,17 +41,17 @@ InodeBlock createInodeBlock(char *name)
 
    inodeBlock.details.type = INODE_BLOCK_TYPE;
    inodeBlock.details.magicNum = MAGIC_NUMBER;
-
-   /* this needs to be the actual next block not 0 */
    inodeBlock.details.next = 0;
 
    strcpy(inodeBlock.fileName, name);
 
    inodeBlock.fileSize = 0;
-   inodeBlock.FP = inodeBlock.next * BLOCKSIZE + BLOCK_DETAIL_BYTES;
+   inodeBlock.FP = inodeBlock.details.next * BLOCKSIZE + BLOCK_DETAIL_BYTES;
    inodeBlock.startFP = inodeBlock.FP;
+   
    inodeBlock.numBlocks = 0;
    inodeBlock.isClosed = 0;
+   inodeBlock.location = nextFreeBlock();
 }
 
 /* inserts inode into disk's inode table and returns fd */
@@ -43,9 +63,9 @@ fileDescriptor insertNewInode(InodeBlock inodeBlock)
    FD = -1;
    for (i = 1; i < SUPER_TABLE_SIZE; i++)
    {
-      if (diskTable[curDiskNum].inodeTable[i].fileSize == -1)
+      if (diskTable[mountedDisk].inodeTable[i].fileSize == -1)
       {
-         diskTable[curDiskNum].inodeTable[i] = inodeBlock;
+         diskTable[mountedDisk].inodeTable[i] = inodeBlock;
          FD = i;
          break;
       }
@@ -63,7 +83,12 @@ fileDescriptor tfs_openFile(char *name)
    InodeBlock inodeBlock;
 
    inodeBlock = createInodeBlock(name);
+   if (inodeBlock.location == 0)
+      return -1;
+
    FD = insertNewInode(inodeBlock);
+   if (writeBlock(mountedDisk, inodeBlock.location, &inodeBlock) != 0)
+      return -1; 
    return FD; 
 }
 
@@ -71,14 +96,16 @@ fileDescriptor tfs_openFile(char *name)
 int getMaxFP(fileDescriptor FD)
 {
    int maxFP, numBlocks;
+   InodeBlock inodeBlock;
 
-   /* does inodeTable actually look like this? 
-    * find number of blocks to skip over block detail bytes for fp */
-   numBlocks = inodeTable[FD]->fileSize / EXTENT_EMPTY_BYTES + 1;
-   if (inodeTable[FD]->fileSize % EXTENT_EMPTY_BYTES == 0)
+   inodeBlock = diskTable[mountedDisk].inodeTable[FD];
+
+   /* find number of blocks to skip over block detail bytes for fp */
+   numBlocks = inodeBlock.fileSize / EXTENT_EMPTY_BYTES + 1;
+   if (inodeBlock.fileSize % EXTENT_EMPTY_BYTES == 0)
       numBlocks -= 1;
 
-   maxFP = inodeTable[FD]->startFP + inodeTable[FD]->fileSize +
+   maxFP = inodeBlock.startFP + inodeBlock.fileSize +
       (numBlocks - 1) * BLOCK_DETAIL_BYTES - 1;
    
    return maxFP;
@@ -90,40 +117,45 @@ int getMaxFP(fileDescriptor FD)
 int tfs_seek(fileDescriptor FD, int offset)
 {
    int FP, maxFP;
-  
+   InodeBlock *inodeBlock;
+
+   inodeBlock = &diskTable[mountedDisk].inodeTable[FD];
+
    maxFP = getMaxFP(FD); 
-   FP = inodeTable[FD]->startFP + offset + (numBlocks - 1) * BLOCK_DETAIL_BYTES;
+   FP = inodeBlock->startFP + offset + (inodeBlock->numBlocks - 1) * BLOCK_DETAIL_BYTES;
 
    /* check if negative offset or FP points past last byte in file */
    if (offset < 0 || FP > maxFP)
       return -1;
 
-   /* fileTable[FD] is block offset that inodeBlock[FD] is written to 
-    * it points to first byte of inode right?
-    * inodeBlock[FD] is struct but still might work as argument */
-   if (writeBlock(curDiskNum, fileTable[FD], inodeBlock[FD]) != 0)
+   if (writeBlock(mountedDisk, inodeBlock->location, inodeBlock) != 0)
       return -1;
    
-   inodeTable[FD]->FP = FP;
+   inodeBlock->FP = FP;
    return 0;
 }
 
-/* creates file exten block to store file contents */
-ExtentBlock createExtentBlock()
+/* creates file extent block to store file contents */
+FileExtentBlock createExtentBlock(fileDescriptor FD)
 {
-   ExtentBlock extentBlock;
+   FileExtentBlock extentBlock;
+   InodeBlock inodeBlock;
+
+   inodeBlock = diskTable[mountedDisk].inodeTable[FD];
 
    extentBlock.details.type = EXTENT_BLOCK_TYPE;
    extentBlock.details.magicNum = MAGIC_NUMBER;
-   extentBlock.details.next = inodeTable[FD]->details.next + inodeTable[FD]->numBlocks;
+   extentBlock.details.next = inodeBlock.details.next + inodeBlock.numBlocks;
 
    return extentBlock;
 }
 
 /* writes file contents to a block in disk */ 
 int writeExtentBlock(int *firstBlock, int *inodePrev, 
-   ExtentBlock *extentBlock, ExtentBlock prevBlock)
+   FileExtentBlock *extentBlock, FileExtentBlock prevBlock, fileDescriptor FD)
 {
+   InodeBlock inodeBlock = diskTable[mountedDisk].inodeTable[FD];
+
    if (*firstBlock)
    {
       *firstBlock = 0;
@@ -133,10 +165,10 @@ int writeExtentBlock(int *firstBlock, int *inodePrev,
    if (*inodePrev)
    {
        *inodePrev = 0;
-       return writeBlock(curDiskNum, inodeBlock[FD]->details.next, extentBlock);
+       return writeBlock(mountedDisk, inodeBlock.details.next, extentBlock);
    }
    else
-      return writeBlock(curDiskNum, prevBlock.details.next, extentBlock);
+      return writeBlock(mountedDisk, prevBlock.details.next, extentBlock);
 }
 
 /* Writes buffer ‘buffer’ of size ‘size’, which represents an entire 
@@ -145,42 +177,46 @@ int writeExtentBlock(int *firstBlock, int *inodePrev,
 int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
 {
    int i, firstBlock, inodePrev;   
-   ExtentBlock extentBlock, prevBlock;
+   FileExtentBlock extentBlock, prevBlock;
+   InodeBlock *inodeBlock;
    
    if (size <= 0)
       return -1;
 
+   i = 0;
    firstBlock = 1;
    inodePrev = 1;
-   extentBlock = createExtentBlock();
+   extentBlock = createExtentBlock(FD);
    prevBlock = extentBlock;
+   inodeBlock = &diskTable[mountedDisk].inodeTable[FD];
 
    tfs_seek(FD, 0);
    while (size)
    {
       if (i % EXTENT_EMPTY_BYTES  == 0)
       {
-         inodeBlock[FD]->numBlocks++;
+         inodeBlock->numBlocks++;
 
          if (writeExtentBlock(&firstBlock, &inodePrev, 
-            &extentBlock, prevBlock) != 0)
+            &extentBlock, prevBlock, FD) != 0)
             return -1;
 
          prevBlock = extentBlock;
-         extentBlock = createExtentBlock();
+         extentBlock = createExtentBlock(FD);
       }
 
-      extentBlock->data[i] = buffer[i];
+      extentBlock.data[i] = buffer[i];
       i++;
       size--;
    }
+   
+   if (writeBlock(mountedDisk, inodeBlock->location, inodeBlock) != 0)
+      return -1;
 
-   /* inodeBlock[FD]->details.next = fileTable[FD] + 1; (upon creation of file) 
-    * and numBlocks should be set to 0 */
    if (firstBlock)
-      return writeBlock(curDiskNum, inodeBlock[FD]->details.next, &extentBlock, prevBlock);
+      return writeBlock(mountedDisk, inodeBlock->details.next, &extentBlock);
    else
-      return writeBlock(curDiskNum, prevBlock.details.next, &extentBlock, prevBlock);
+      return writeBlock(mountedDisk, prevBlock.details.next, &extentBlock);
 }
 
 /* reads one byte from the file and copies it to buffer, using the current file
@@ -190,27 +226,30 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
 int tfs_readByte(fileDescriptor FD, char *buffer)
 {
    int maxFP, blockNum, byteIndex;
-   ExtentBlock extentBlock;
+   FileExtentBlock extentBlock;
+   InodeBlock *inodeBlock;
 
-   extentBlock = createExtentBlock();
-   maxFP = getMaxFP[FD];
+   extentBlock = createExtentBlock(FD);
+   inodeBlock = &diskTable[mountedDisk].inodeTable[FD];
 
-   blockNum = inodeTable[FD]->fileSize / EXTENT_EMPTY_BYTES;
-   if (inodeTable[FD]->fileSize % EXTENT_EMPTY_BYTES == 0)
+   maxFP = getMaxFP(FD);
+
+   blockNum = inodeBlock->fileSize / EXTENT_EMPTY_BYTES;
+   if (inodeBlock->fileSize % EXTENT_EMPTY_BYTES == 0)
       blockNum -= 1;
 
-   if (blockNum < 0 || inodeBlock[FD]->FP == maxFP)
+   if (blockNum < 0 || inodeBlock->FP == maxFP)
       return -1;
 
-   inodeBlock[FD]->FP += 1;
-   if (writeBlock(curDiskNum, fileTable[FD], inodeBlock[FD]) != 0)
+   inodeBlock->FP += 1;
+   if (writeBlock(mountedDisk, inodeBlock->location, inodeBlock) != 0)
       return -1;
    
-   if (readBlock(curDiskNum, blockNum, &extentBlock) != 0)
+   if (readBlock(mountedDisk, blockNum, &extentBlock) != 0)
       return -1;
 
-   byteIndex = inodeBlock[FD]->FP / ((blockNum + 1) * 
-      (BLOCKSIZE - BLOCK_DETAIL_BYTES)) + inodeBlock[FD]->FP % BLOCKSIZE - 1
-   *buffer = extentBlock.data[byteIndex]; 
+   byteIndex = inodeBlock->FP / ((blockNum + 1) * 
+      (BLOCKSIZE - BLOCK_DETAIL_BYTES)) + inodeBlock->FP % BLOCKSIZE - 1;
+   buffer[0] = extentBlock.data[byteIndex]; 
    return 0;
 }
