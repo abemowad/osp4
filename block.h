@@ -1,6 +1,13 @@
 #ifndef BLOCK_H
 #define BLOCK_H
 
+<<<<<<< HEAD
+=======
+#define SUPER_EMPTY_BYTES 1
+#define SUPER_TABLE_SIZE 119
+#define INODE_EMPTY_BYTES 239
+
+>>>>>>> 8022a0f35bff26ba1ba59981b8dbe93937309923
 #define SUPER_BLOCK_TYPE   1
 #define INODE_BLOCK_TYPE   2
 #define EXTENT_BLOCK_TYPE  3
