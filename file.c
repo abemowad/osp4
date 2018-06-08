@@ -7,11 +7,7 @@
 #include "libDisk.h"
 
 /* ----  TO DO  ----
- * 1) edit open to check if closed
- * 2) open should change FD table and closedInode table
- * 3) closed should change FD table and closedInode table
- * 4) edit write to check if closed
- * 5) edit write to check if space
+ * 1) closed should change FD table and closedInode table
  */ 
 
 unsigned short nextFreeBlock()
@@ -73,18 +69,40 @@ fileDescriptor insertNewInode(InodeBlock inodeBlock)
    return FD;
 }
 
+/* finds index of inode block in closed inode table if present */
+int findClosedFile(char *name)
+{
+   int i;
+
+   for (i = 0; i < SUPER_TABLE_SIZE; i++)
+   {
+      if (strcmp(name, diskTable[mountedDisk].closedInodes[i].fileName) == 0)
+         return i;
+   }
+   return 0;
+}
+
 /* Opens a file for reading and writing on the currently mounted file system. 
  * Creates a dynamic resource table entry for the file, and returns a file 
  * descriptor (integer) that can be used to reference this file while the 
  * filesystem is mounted. */
 fileDescriptor tfs_openFile(char *name)
 {
+   int closedIndex;
    fileDescriptor FD;
    InodeBlock inodeBlock;
 
-   inodeBlock = createInodeBlock(name);
+   if ((closedIndex = findClosedFile(name)))
+   {
+      diskTable[mountedDisk].closedInodes[closedIndex].fileSize = -1;
+      inodeBlock = diskTable[mountedDisk].closedInodes[closedIndex];
+      inodeBlock.isClosed = 0;
+   }
+   else   
+      inodeBlock = createInodeBlock(name);
+   
    if (inodeBlock.location == 0)
-      return -1;
+         return -1;
 
    FD = insertNewInode(inodeBlock);
    if (writeBlock(mountedDisk, inodeBlock.location, &inodeBlock) != 0)
@@ -171,6 +189,44 @@ int writeExtentBlock(int *firstBlock, int *inodePrev,
       return writeBlock(mountedDisk, prevBlock.details.next, extentBlock);
 }
 
+unsigned short findFileBlocks(int size)
+{
+   unsigned short i, currIndex, prevIndex, numFreeBlocks, sizeBlocks, startBlock;
+   
+   numFreeBlocks = 0;
+   sizeBlocks = size / EXTENT_EMPTY_BYTES;
+
+   if (size % EXTENT_EMPTY_BYTES != 0)
+      sizeBlocks += 1;
+   
+   for (i = 0; i < diskTable[mountedDisk].superBlock.numBlocks; i++)
+   {
+      if ((currIndex = nextFreeBlock()) == 0)
+         return 0;
+      
+      if (i == 0)
+      {
+         startBlock = currIndex;
+         ++numFreeBlocks;
+      }
+      else
+      {
+         if (currIndex = prevIndex + 1)
+            ++numFreeBlocks;
+         else
+         {
+            numFreeBlocks = 1;
+            startBlock = currIndex;
+         }
+      }
+      if (numFreeBlocks == sizeBlocks)
+         return startBlock; 
+      prevIndex = currIndex;
+   }
+   
+   return 0;
+}
+
 /* Writes buffer ‘buffer’ of size ‘size’, which represents an entire 
  * file’s contents, to the file system. Sets the file pointer to 0 
  * (the start of file) when done. Returns success/error codes. */
@@ -180,7 +236,7 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
    FileExtentBlock extentBlock, prevBlock;
    InodeBlock *inodeBlock;
    
-   if (size <= 0)
+   if (diskTable[mountedDisk].inodeTable[FD].fileSize == -1 || size <= 0)
       return -1;
 
    i = 0;
@@ -189,6 +245,16 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
    extentBlock = createExtentBlock(FD);
    prevBlock = extentBlock;
    inodeBlock = &diskTable[mountedDisk].inodeTable[FD];
+   
+   if (inodeBlock->details.next == 0)
+   {
+      if (!(inodeBlock->details.next = findFileBlocks(size)))
+         return -1;
+   }
+   else if (inodeBlock->fileSize < size)
+      return -1;   
+
+   inodeBlock->fileSize = size;
 
    tfs_seek(FD, 0);
    while (size)

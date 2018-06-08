@@ -31,7 +31,6 @@ typedef struct DiskTableEntry
    SuperBlock superBlock;
    InodeBlock inodeTable[SUPER_TABLE_SIZE];
    InodeBlock closedInodes[SUPER_TABLE_SIZE];
-   int tableFD[SUPER_TABLE_SIZE];
 } DiskTableEntry;
 
 
