@@ -15,6 +15,8 @@
 #define diskReadErr -4
 #define noMountedDiskErr -5
 #define diskOpenError -6
+#define fileNameTooBigErr -7
+#define fileNotFoundErr -8
 
 
 #endif

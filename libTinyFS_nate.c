@@ -35,21 +35,19 @@ void init_superblock(int diskNum, int nBytes)
    fprintf(stderr,"writing superblock at disk %d\n", diskNum);
 
    writeBlock(diskNum, 0, (void*)(&superblock));
+   diskTable[diskNum].superBlock = superblock;
 }
 
 /* Initializes a root inode for the disk and writes the block to the file at 
 block 1 of the disk*/
 void init_root(int diskNum)
 {
-   char buffa[256] = "hello world";
-
    InodeBlock inode = {0};
    inode.details.type = 2;
    inode.details.magicNum = 45;
-   inode.details.next = -1; /* does root have next block? */
+   inode.details.next = 0;
    strcpy(inode.fileName, "/");
    inode.fileSize = 0; /* does root have a file size? */
-   inode.lastIndex = 0; /* does root have a file size? */
 
    /* Sets the first inode in the inode table of disk to be the root inode (fd 0) */
    diskTable[diskNum].inodeTable[0] = inode;
@@ -65,7 +63,9 @@ and writing the superblock and inodes, etc. Must return a specified
 success/error code. */
 int tfs_mkfs(char *filename, int nBytes)
 {
-   InodeBlock inode = {0};
+   /* TO DO:
+      set all filesizes in disk's inodeTable to -1
+      */
    int i, diskNum, blocks = nBytes / BLOCKSIZE;
    char writeBuffer[BLOCKSIZE];
    
@@ -75,6 +75,7 @@ int tfs_mkfs(char *filename, int nBytes)
 
    /* loops through each block in disk and sets it to a free block */
    for (i = 0; i < blocks; i++) {
+      diskTable[diskNum].inodeTable[i].fileSize = -1;
       if ((err = clear_block(mountedDisk, i)) != 0) {
          return err;
    }
@@ -84,7 +85,7 @@ int tfs_mkfs(char *filename, int nBytes)
 
    init_superblock(diskNum, nBytes);
    
-   closeDisk(diskNum);
+   closeDisk(diskNum); /* don't want new file system to be mounted by default */
    return 0;
 }
 
@@ -97,6 +98,13 @@ a specified success/error code. */
 int tfs_mount(char *filename)
 {
    int err;
+      /* TO DO:
+         set all filesizes in disks
+ 's inodeTable to -1
+ */
+   /* TO DO:
+      set all filesizes in disk's inodeTable to -1
+      */
    if (mountedDisk > -1) {
       if ((err = tfs_unmount()) != 0) {
          return err;
@@ -125,18 +133,12 @@ or removed from the disk. */
 int update_SB_fileTable(fileDescriptor FD)
 {
    int err;
-   SuperBlock *sb_ptr;
-   char IOBuffer[256];
-
-   if ((err = readBlock(mountedDisk, 0, IOBuffer)) != 0) {
-      return err;   
-   }
+   SuperBlock *sb_ptr = &(diskTable[mountedDisk].superBlock);
 
    /* need to change the FD entry in the super table to be -1 for closed */
-   sb_ptr = (SuperBlock*)IOBuffer;
    sb_ptr->fileTable[FD] = -1; /* changes fd table so that file is closed */
 
-   if ((err = writeBlock(mountedDisk, 0, IOBuffer)) != 0) {
+   if ((err = writeBlock(mountedDisk, 0, sb_ptr)) != 0) {
       return err;   
    }
    return 0;
@@ -150,7 +152,9 @@ int tfs_closeFile(fileDescriptor FD)
     * Still need to update the isClosed variable on the inode actually on disk,
     * Not sure where this inode is on disk
     */
-   int err;
+   int err, 
+   InodeBlock inode;
+   
 
    if (mountedDisk < 0) {
       return noMountedDiskErr;
@@ -161,6 +165,9 @@ int tfs_closeFile(fileDescriptor FD)
    }
    
    diskTable[mountedDisk].inodeTable[FD].isClosed = 1;
+   inode = diskTable[mountedDisk].inodeTable[FD];
+   writeBlock(mountedDisk, inode.location, &inode);
+
    return 0;
 }
 
@@ -201,6 +208,10 @@ int tfs_deleteFile(fileDescriptor FD)
    
    diskTable[mountedDisk].inodeTable[FD].isClosed = 1;
    diskTable[mountedDisk].inodeTable[FD].fileSize = -1; /* signifies freed up inode */
+
+   /* Frees the block that holds the inode of the deleted file */
+   clear_block(mountedDisk, inodeTable[FD].location);
+   diskTable[mountedDisk].superBlock.totalFileNum--;
 
    return 0;
 }
