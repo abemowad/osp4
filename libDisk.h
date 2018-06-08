@@ -13,10 +13,10 @@
 #include "TinyFS_errno.h"
 #include "block.h"
 
-#define DEFAULT_DISK_SIZE 10240
-#define DEFAULT_DISK_NAME "tinyFSDisk"
-#define WRITE_FLAG        0666
-
+#define DEFAULT_DISK_SIZE  10240
+#define DEFAULT_DISK_NAME  "tinyFSDisk"
+#define WRITE_FLAG         0666
+#define MAGIC_NUMBER       0x45
 
 /* A struct that holds an entry in the global disk table. Each entry has a 
 pointer to a disk containing a passed in number of blocks, along with a
