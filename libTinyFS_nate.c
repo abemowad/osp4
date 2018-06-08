@@ -25,7 +25,7 @@ void init_superblock(int diskNum, int nBytes)
    superblock.details.type = 1;
    superblock.details.magicNum = 45;
    superblock.details.next = -1; 
-   superblock.currFileNum = 1; /* root inode is first */
+   superblock.totalFileNum = 1; /* root inode is first */
    superblock.isClosed = 1;
    superblock.numBlocks = nBytes / BLOCKSIZE;
 
@@ -66,7 +66,7 @@ int tfs_mkfs(char *filename, int nBytes)
    /* TO DO:
       set all filesizes in disk's inodeTable to -1
       */
-   int i, diskNum, blocks = nBytes / BLOCKSIZE;
+   int i, diskNum, err, blocks = nBytes / BLOCKSIZE;
    char writeBuffer[BLOCKSIZE];
    
    if ((diskNum = openDisk(filename, nBytes)) == -1) {
@@ -78,6 +78,7 @@ int tfs_mkfs(char *filename, int nBytes)
       diskTable[diskNum].inodeTable[i].fileSize = -1;
       if ((err = clear_block(mountedDisk, i)) != 0) {
          return err;
+      }
    }
 
    /* initializes the root inode in the disk */
@@ -152,7 +153,7 @@ int tfs_closeFile(fileDescriptor FD)
     * Still need to update the isClosed variable on the inode actually on disk,
     * Not sure where this inode is on disk
     */
-   int err, 
+   int err;
    InodeBlock inode;
    
 
@@ -177,7 +178,7 @@ int set_freeBlocks(InodeBlock inode)
    int i, err;
    FileExtentBlock dataBlock;
 
-   for (i = 0; i < numBlocks; i++) {
+   for (i = 0; i < inode.numBlocks; i++) {
       /* Clears each of the file extent blocks associated with the file, assuming
       data is contiguous and that inode's next points to first file ext block */
       if ((err = clear_block(mountedDisk, inode.details.next+i)) != 0) {
@@ -210,7 +211,7 @@ int tfs_deleteFile(fileDescriptor FD)
    diskTable[mountedDisk].inodeTable[FD].fileSize = -1; /* signifies freed up inode */
 
    /* Frees the block that holds the inode of the deleted file */
-   clear_block(mountedDisk, inodeTable[FD].location);
+   clear_block(mountedDisk, diskTable[mountedDisk].inodeTable[FD].location);
    diskTable[mountedDisk].superBlock.totalFileNum--;
 
    return 0;

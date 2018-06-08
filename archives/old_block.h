@@ -31,22 +31,27 @@ typedef struct
    unsigned short next;
 }  BlockDetails;
 
+/* all block types have this information. type refers to block type number,
+ * next refers to the index of the next block in the disk  */
+typedef struct
+{
+   unsigned char created;
+   unsigned char accessed;
+   unsigned char modified;
+}  TimeStamp;
+
 /* inode block - block type #2. fileName is up to 8 chars, fileSize refers to
  * number of blocks in file, lastIndex is last block index of file */
 typedef struct
 {
    BlockDetails details;
    unsigned char fileName[MAX_NAME_LEN];
-   unsigned int fileSize;
+   int fileSize;
    unsigned int FP;
    unsigned int startFP;
    unsigned short numBlocks;
-<<<<<<< HEAD
    unsigned short location;
    int isClosed;
-=======
-   unsigned char isClosed;
->>>>>>> 8022a0f35bff26ba1ba59981b8dbe93937309923
    char empty[INODE_EMPTY_BYTES];  
 } InodeBlock;
 
@@ -57,7 +62,7 @@ typedef struct
 {
    BlockDetails details;
    unsigned short rootInodeBlock;
-   unsigned short currFileNum;
+   unsigned short totalFileNum;
    unsigned char isClosed;
    unsigned short numBlocks;
    unsigned short fileTable[SUPER_TABLE_SIZE];

@@ -16,8 +16,8 @@ int tfs_rename(const char *oldName, const char *newName)
 
    for (i = 0; i < totalFiles; i++) {
       inode = &(diskTable[mountedDisk].inodeTable[i]);
-      if (!strcmp(oldName, inode.fileName)) {
-         strcpy(inode.fileName, newName); 
+      if (!strcmp(oldName, inode->fileName)) {
+         strcpy(inode->fileName, newName); 
          return 0;
       } 
    }
