@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "string.h"
 #include "block.h"
@@ -104,6 +105,8 @@ fileDescriptor tfs_openFile(char *name)
    if (inodeBlock.location == 0)
          return -1;
 
+   diskTable[mountedDisk].inodeTable[FD].timestamp.created = time(0);
+
    FD = insertNewInode(inodeBlock);
    if (writeBlock(mountedDisk, inodeBlock.location, &inodeBlock) != 0)
       return -1; 
@@ -174,6 +177,7 @@ int writeExtentBlock(int *firstBlock, int *inodePrev,
 {
    InodeBlock inodeBlock = diskTable[mountedDisk].inodeTable[FD];
 
+   
    if (*firstBlock)
    {
       *firstBlock = 0;
@@ -279,6 +283,8 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
    if (writeBlock(mountedDisk, inodeBlock->location, inodeBlock) != 0)
       return -1;
 
+   diskTable[mountedDisk].inodeTable[FD].timestamp.modified = time(0);
+
    if (firstBlock)
       return writeBlock(mountedDisk, inodeBlock->details.next, &extentBlock);
    else
@@ -314,6 +320,8 @@ int tfs_readByte(fileDescriptor FD, char *buffer)
    if (readBlock(mountedDisk, blockNum, &extentBlock) != 0)
       return -1;
 
+   diskTable[mountedDisk].inodeTable[FD].timestamp.accessed = time(0);
+   
    byteIndex = inodeBlock->FP / ((blockNum + 1) * 
       (BLOCKSIZE - BLOCK_DETAIL_BYTES)) + inodeBlock->FP % BLOCKSIZE - 1;
    buffer[0] = extentBlock.data[byteIndex]; 
