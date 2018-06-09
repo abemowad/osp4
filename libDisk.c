@@ -73,7 +73,9 @@ int openDisk(char *filename, int nBytes)
    int diskNum, truncErr;
    
    if (nBytes == 0) {
+      printf("totalBlocks: %d\n", diskTable[diskNum].totalBlocks);
       diskNum = openExistingDisk(filename);
+   
       if (diskNum == -1) {
          printf("No disk associated with %s\n", filename);
          return -1;
@@ -89,6 +91,7 @@ int openDisk(char *filename, int nBytes)
       else {
          diskNum = truncateExistingDisk(diskNum, nBytes);
       }
+      diskTable[diskNum].totalBlocks = nBytes/BLOCKSIZE; 
    }
 
    else {
@@ -96,6 +99,7 @@ int openDisk(char *filename, int nBytes)
    }
    if (diskNum > -1) {
       diskTable[diskNum].isMounted = 1; 
+      printf("totalBlocks: %d\n", diskTable[diskNum].totalBlocks);
    }
    
    return diskNum;
@@ -107,9 +111,12 @@ int readBlock(int disk, int bNum, void *block)
    char *filename = diskTable[disk].filename;
    FILE *diskFile = diskTable[disk].diskFile;
 
-
+   printf("total disks: %d, disk: %d\n", totalDisks, disk);
    if (!(diskTable[disk].isMounted) || (disk >= totalDisks)) {
-      return diskClosedErr; /* either disk not mounted or out of range of table */
+      return diskClosedErr; /* either disk not mounted or out of range of table */ }
+
+   if (bNum >= diskTable[disk].totalBlocks) {
+      return outOfDiskBoundsErr; /* past the bounds of the current disk size */
    }
 
    if (fseek(diskFile, offset, SEEK_SET) == -1) {
@@ -130,6 +137,10 @@ int writeBlock(int disk, int bNum, void *block)
 
    if (!(diskTable[disk].isMounted) || (disk >= totalDisks)) {
       return diskClosedErr; /* either disk not mounted or out of range of table */
+   }
+
+   if (bNum >= diskTable[disk].totalBlocks) {
+      return outOfDiskBoundsErr; /* past the bounds of the current disk size */
    }
 
    if (fseek(diskFile, offset, SEEK_SET) == -1) {
@@ -166,3 +177,4 @@ void printEntry(int disk) {
       fprintf(stderr, "empty \n");
    }
 }
+

@@ -73,10 +73,9 @@ int tfs_mkfs(char *filename, int nBytes)
       return diskOpenError;
    }
 
-   /* loops through each block in disk and sets it to a free block */
    for (i = 0; i < blocks; i++) {
       diskTable[diskNum].inodeTable[i].fileSize = -1;
-      if ((err = clear_block(mountedDisk, i)) != 0) {
+      if ((err = clear_block(diskNum, i)) != 0) {
          return err;
       }
    }
@@ -166,6 +165,7 @@ int tfs_closeFile(fileDescriptor FD)
    }
    
    diskTable[mountedDisk].inodeTable[FD].isClosed = 1;
+   diskTable[mountedDisk].inodeTable[FD].fileSize = -1; /* signifies freed up inode */
    inode = diskTable[mountedDisk].inodeTable[FD];
    writeBlock(mountedDisk, inode.location, &inode);
 
