@@ -1,6 +1,8 @@
 #ifndef BLOCK_H
 #define BLOCK_H
 
+#include <time.h>
+
 #define SUPER_BLOCK_TYPE   1
 #define INODE_BLOCK_TYPE   2
 #define EXTENT_BLOCK_TYPE  3
@@ -8,7 +10,7 @@
 
 #define SUPER_TABLE_SIZE   122   
 #define SUPER_EMPTY_BYTES  1
-#define INODE_EMPTY_BYTES  223
+#define INODE_EMPTY_BYTES  145
 #define EXTENT_EMPTY_BYTES 250
 #define FREE_EMPTY_BYTES   252
 #define MAX_NAME_LEN       9
@@ -28,9 +30,9 @@ typedef struct
  * next refers to the index of the next block in the disk  */
 typedef struct
 {
-   unsigned char created;
-   unsigned char accessed;
-   unsigned char modified;
+   time_t created;
+   time_t accessed;
+   time_t modified;
 }  TimeStamp;
 
 /* inode block - block type #2. fileName is up to 8 chars, fileSize refers to
@@ -45,6 +47,7 @@ typedef struct
    unsigned short numBlocks;
    unsigned short location;
    int isClosed;
+   TimeStamp timestamp;
    char empty[INODE_EMPTY_BYTES];  
 } InodeBlock;
 
