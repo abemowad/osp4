@@ -1,7 +1,4 @@
-#include "block.h"
-#include "TinyFS_errno.h"
-#include "libTinyFS.h"
-#include "libDisk.h"
+#include "additional_features.h"
 
 /******************************************************************************
                         DIRECTORY LISTING AND RENAMING
@@ -60,6 +57,7 @@ int tfs_readdir()
       }
       i++; 
    }
+   return 0;
 }
 
 /******************************************************************************

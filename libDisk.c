@@ -73,8 +73,8 @@ int openDisk(char *filename, int nBytes)
    int diskNum, truncErr;
    
    if (nBytes == 0) {
-      printf("totalBlocks: %d\n", diskTable[diskNum].totalBlocks);
       diskNum = openExistingDisk(filename);
+      printf("totalBlocks: %d\n", diskTable[diskNum].totalBlocks);
    
       if (diskNum == -1) {
          printf("No disk associated with %s\n", filename);

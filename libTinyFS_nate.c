@@ -163,7 +163,7 @@ int tfs_closeFile(fileDescriptor FD)
       return err;
    }
 
-   diskTable[mountedDisk].closedTable[FD] = diskTable[mountedDisk].inodeTable[FD];
+   diskTable[mountedDisk].closedInodes[FD] = diskTable[mountedDisk].inodeTable[FD];
    
    diskTable[mountedDisk].inodeTable[FD].isClosed = 1;
    diskTable[mountedDisk].inodeTable[FD].fileSize = -1; /* signifies freed up inode */
