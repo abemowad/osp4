@@ -4,6 +4,11 @@ alias diskh="vim libDisk.h"
 alias fs="vim libTinyFS_nate.c"
 alias fsh="vim libTinyFS.h"
 alias block="vim block.h"
-alias abe="vim singleFileDriver.c"
+<<<<<<< HEAD
+alias edit="vim mainAbe.c"
+alias make="gcc *.c"
+=======
+alias edit="vim main.c"
 alias make="gcc -g *.c"
+>>>>>>> 4f5a998f596f91892212eb3ac6e260fd13958753
 alias file="vim file.c"
