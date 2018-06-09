@@ -1,6 +1,11 @@
 #include "block.h"
+#include "TinyFS_errno.h"
 #include "libTinyFS.h"
 #include "libDisk.h"
+
+/******************************************************************************
+                        DIRECTORY LISTING AND RENAMING
+******************************************************************************/
 
 /* Renames a file based on a passed in new name. Returns 0 on success
 and a negative number signifying an error */
@@ -55,5 +60,29 @@ int tfs_readdir()
       }
       i++; 
    }
+}
+
+/******************************************************************************
+                                  TIMESTAMPS
+******************************************************************************/
+
+int tfs_readFileInfo(fileDescriptor FD)
+{
+   InodeBlock inode;
+
+   if (mountedDisk < 0) {
+      return noMountedDiskErr;
+   }
+   inode = diskTable[mountedDisk].inodeTable[FD];
+   char *created_str = ctime(&inode.timestamp.created);
+   char *accessed_str = ctime(&inode.timestamp.accessed);
+   char *modified_str = ctime(&inode.timestamp.modified);
+
+   printf("\n%s\n", inode.fileName);
+   printf("Created: %s\n", created_str);
+   printf("Accessed: %s\n", accessed_str);
+   printf("Created: %s\n", modified_str);
+
+   return 0;
 }
 
