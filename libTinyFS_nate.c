@@ -149,13 +149,12 @@ entry */
 int tfs_closeFile(fileDescriptor FD)
 {
    /* ---TO DO:---
-    * Still need to update the isClosed variable on the inode actually on disk,
-    * Not sure where this inode is on disk
+    * Adding a closed disk to the closed table has a potential for overwriting an inode
+    * with the the same file descriptor
     */
    int err;
    InodeBlock inode;
    
-
    if (mountedDisk < 0) {
       return noMountedDiskErr;
    }
@@ -163,6 +162,8 @@ int tfs_closeFile(fileDescriptor FD)
    if ((err = update_SB_fileTable(FD)) != 0) {
       return err;
    }
+
+   diskTable[mountedDisk].closedTable[FD] = diskTable[mountedDisk].inodeTable[FD];
    
    diskTable[mountedDisk].inodeTable[FD].isClosed = 1;
    diskTable[mountedDisk].inodeTable[FD].fileSize = -1; /* signifies freed up inode */
