@@ -29,7 +29,7 @@ int main()
    sleep(2);
    tfs_writeFile(numbers_fd, writeBuf, 5000);
    tfs_readByte(numbers_fd, readBuf);
-   /*printf("First byte should be zero... first byte: %d\n", readBuf[0]);
+   printf("First byte should be zero... first byte: %d\n", readBuf[0]);
    tfs_seek(numbers_fd, 500);
    tfs_readByte(numbers_fd, readBuf);
    printf("500th byte should be 500... 500th byte: %d\n", readBuf[0]);
@@ -39,12 +39,10 @@ int main()
    tfs_seek(numbers_fd, 5001);
    err = tfs_readByte(numbers_fd, readBuf);
    printf("5001st byte should give error... err code: %d\n", err);
-   */
 
-   /*
 
    /* Renames numbers.txt to new_name.txt. All of the byte values should be
-      the same *
+      the same */
    printf("\nRenaming numbers.txt to new_name.txt...\n");
    tfs_rename("numbers.txt", "new_name.txt");
    printf("First byte should be zero... first byte: %d\n", readBuf[0]);
@@ -59,9 +57,9 @@ int main()
    printf("5001st byte should give error... err code: %d\n", err);
 
 
-   /* Opens a separate file named letters.txt, writes to it and reads bytes *
+   /* Opens a separate file named letters.txt, writes to it and reads bytes */
    for (i = 0; i < 26; i++) {
-      writeBuf[i] = i+97; /* writes all lower case letters to first 26 spots *
+      writeBuf[i] = i+97; /* writes all lower case letters to first 26 spots */
    }
 
    printf("\nOpening letters.txt...\n");
@@ -78,12 +76,12 @@ int main()
    err = tfs_readByte(letters_fd, readBuf);
    printf("30th byte should give error... err code: %d\n", err);
 
-   /* new_name.txt is still open, we should be able to read from it *
+   /* new_name.txt is still open, we should be able to read from it */
    tfs_seek(numbers_fd, 500);
    tfs_readByte(numbers_fd, readBuf);
    printf("500th byte should be 500... 500th byte: %d\n", readBuf[0]);
 
-   /* letters.txt still open, should be able to read from it *
+   /* letters.txt still open, should be able to read from it */
    tfs_seek(letters_fd, 26);
    tfs_readByte(letters_fd, readBuf);
    printf("26th byte should be \"z\"... first byte: %c\n", readBuf[0]);

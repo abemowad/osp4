@@ -132,7 +132,7 @@ int writeBlock(int disk, int bNum, void *block)
    FILE *diskFile = diskTable[disk].diskFile;
 
 
-   printf("total blocks: %d block: %d \n", diskTable[disk].totalBlocks, bNum);
+   //printf("total blocks: %d block: %d \n", diskTable[disk].totalBlocks, bNum);
    if (!(diskTable[disk].isMounted) || (disk >= totalDisks)) {
       return diskClosedErr; /* either disk not mounted or out of range of table */
    }

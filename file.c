@@ -295,6 +295,9 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
    prevBlock = extentBlock;
    inodeBlock = &diskTable[mountedDisk].inodeTable[FD];
    
+   diskTable[mountedDisk].inodeTable[FD].timestamp.modified = time(0);
+
+
    if (inodeBlock->details.next == 0)
    {
       if (!(inodeBlock->details.next = findFileBlocks(size)))
