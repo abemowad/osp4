@@ -4,7 +4,7 @@
 
 int openDisk(char *filename, int nBytes);
 
-int main()
+int main2()
 {
    SuperBlock superblock;
    InodeBlock inodeblock;
@@ -51,6 +51,9 @@ int main()
    err = tfs_readByte(letters_fd, readBuf);
    printf("30th byte should give error... err code: %d\n", err);
 
+   readBlocks = readBlock(mountedDisk, 3, readBuf);
+
+   printf("%d\t%s\n",readBlocks,&(readBuf[6]));
 
    /* Opening a file, writing to it and then reading specific bytes from file.
       Also tests tfs_seek functionality */
@@ -60,8 +63,18 @@ int main()
    writeBlocks = tfs_writeFile(numbers_fd, writeBuf, 5000);
    printf("numbers.txt written to, writeBlocks: %d\n",writeBlocks);
       
-   //tfs_readdir();
+   tfs_readdir();
 
    /* SHOWING FUNCTIONALITY OF TIMESTAMPS */
+   tfs_readFileInfo(numbers_fd);
+   printf("Sleeping for 2 seconds...\n");
+   sleep(2);
+   printf("Writing to numbers.txt...\n");
+   tfs_writeFile(numbers_fd, writeBuf, 26);
+   tfs_readFileInfo(numbers_fd);
+   printf("Sleeping for 2 seconds...\n");
+   sleep(2);
+   printf("Reading from numbers.txt...\n");
+   tfs_readByte(numbers_fd, readBuf);
    tfs_readFileInfo(numbers_fd);
 }
