@@ -4,7 +4,7 @@
 #include "libTinyFS.h"
 #include "TinyFS_errno.h"
 
-int main()
+int main1()
 {
    int i, mkfsVal, mountVal, openVal, readVal, writeVal, seekVal;
    char emptyByte, firstByte, lastByte, randByte, EOFByte, 

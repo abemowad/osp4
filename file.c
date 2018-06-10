@@ -218,7 +218,6 @@ int writeExtentBlock(int *firstBlock, int *inodePrev,
    FileExtentBlock *extentBlock, FileExtentBlock prevBlock, fileDescriptor FD)
 {
    InodeBlock inodeBlock = diskTable[mountedDisk].inodeTable[FD];
-
    
    if (*firstBlock)
    {
@@ -237,13 +236,13 @@ int writeExtentBlock(int *firstBlock, int *inodePrev,
 
 unsigned short findFileBlocks(int size)
 {
-   unsigned short i, currIndex, prevIndex, numFreeBlocks, sizeBlocks, startBlock;
+   unsigned short i, currIndex, prevIndex, numFreeBlocks, neededBlocks, startBlock;
    
    numFreeBlocks = 0;
-   sizeBlocks = size / EXTENT_EMPTY_BYTES;
+   neededBlocks = size / EXTENT_EMPTY_BYTES;
 
    if (size % EXTENT_EMPTY_BYTES != 0)
-      sizeBlocks += 1;
+      neededBlocks += 1;
   
    for (i = 0; i < diskTable[mountedDisk].superBlock.numBlocks; i++)
    {
@@ -265,7 +264,7 @@ unsigned short findFileBlocks(int size)
             startBlock = currIndex;
          }
       }
-      if (numFreeBlocks == sizeBlocks)
+      if (numFreeBlocks == neededBlocks)
          return startBlock; 
       prevIndex = currIndex;
    }
@@ -334,7 +333,7 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
    printf("CHANGING MODIFIED\n");
    if (writeBlock(mountedDisk, inodeBlock->location, inodeBlock) != 0)
    {
-      fprint(stderr, "failure writing inode block\n");
+      fprintf(stderr, "failure writing inode block\n");
       return -1;
    }
 
