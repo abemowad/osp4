@@ -228,11 +228,15 @@ int writeExtentBlock(int *firstBlock, int *inodePrev,
 
    if (*inodePrev)
    {
+      printf("next not null\n");
+      printf("next: %d\n",inodeBlock.details.next);
        *inodePrev = 0;
        return writeBlock(mountedDisk, inodeBlock.details.next, extentBlock);
    }
-   else
+   else {
+      printf("null\n");
       return writeBlock(mountedDisk, prevBlock.details.next, extentBlock);
+   }
 }
 
 unsigned short findFileBlocks(int size)
@@ -334,7 +338,7 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
    printf("CHANGING MODIFIED\n");
    if (writeBlock(mountedDisk, inodeBlock->location, inodeBlock) != 0)
    {
-      fprint(stderr, "failure writing inode block\n");
+      fprintf(stderr, "failure writing inode block\n");
       return -1;
    }
 
