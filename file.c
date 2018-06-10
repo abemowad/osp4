@@ -349,7 +349,8 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
  * and not increment the file pointer. */
 int tfs_readByte(fileDescriptor FD, char *buffer)
 {
-   int maxFP, blockNum, byteIndex;
+   int maxFP, byteIndex;
+   unsigned short blockNum;
    FileExtentBlock extentBlock;
    InodeBlock inodeBlock;
 
@@ -357,12 +358,10 @@ int tfs_readByte(fileDescriptor FD, char *buffer)
    inodeBlock = diskTable[mountedDisk].inodeTable[FD];
 
    maxFP = getMaxFP(FD);
+   blockNum = inodeBlock.FP / BLOCKSIZE;
+   fprintf(stderr, "blockNum: %d\n", blockNum);
 
-   blockNum = inodeBlock.fileSize / EXTENT_EMPTY_BYTES;
-   if (inodeBlock.fileSize % EXTENT_EMPTY_BYTES == 0)
-      blockNum -= 1;
-
-   if (blockNum < 0)
+   if (inodeBlock.fileSize == 0)
    {
       fprintf(stderr, "Nothing has been written\n");
       return -1;
