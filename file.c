@@ -288,10 +288,16 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
    if (inodeBlock->details.next == 0)
    {
       if (!(inodeBlock->details.next = findFileBlocks(size)))
+      {
+         fprintf(stderr, "not enough free space\n");
          return -1;
+      }
    }
    else if (inodeBlock->fileSize < size)
-      return -1;   
+   {
+      fprintf(stderr, "file isn't large enough\n");
+      return -1;
+   }   
 
    inodeBlock->fileSize = size;
    inodeBlock->startFP = inodeBlock->details.next * BLOCKSIZE + BLOCK_DETAIL_BYTES - 1;
