@@ -83,9 +83,10 @@ int tfs_mkfs(char *filename, int nBytes)
       return diskOpenError;
    }
 
-   for (i = 0; i < blocks; i++) {
+   for (i = 0; i < blocks-1; i++) {
       diskTable[diskNum].inodeTable[i].fileSize = -1;
       if ((err = clear_block(diskNum, i)) != 0) {
+         printf("err while clearing: %d\n", err);
          return err;
       }
    }

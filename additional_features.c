@@ -66,17 +66,21 @@ int tfs_readdir()
 
 int tfs_readFileInfo(fileDescriptor FD)
 {
-   InodeBlock inode;
+   InodeBlock *inode;
 
    if (mountedDisk < 0) {
       return noMountedDiskErr;
    }
-   inode = diskTable[mountedDisk].inodeTable[FD];
-   char *created_str = ctime(&inode.timestamp.created);
-   char *accessed_str = ctime(&inode.timestamp.accessed);
-   char *modified_str = ctime(&inode.timestamp.modified);
+   inode = &(diskTable[mountedDisk].inodeTable[FD]);
+   printf("Created: %ld\n", inode->timestamp.created);
+   printf("Accessed: %ld\n", inode->timestamp.accessed);
+   printf("Modified: %ld\n", inode->timestamp.modified);
 
-   printf("\n%s\n", inode.fileName);
+   char *created_str = ctime(&(inode->timestamp.created));
+   char *accessed_str = ctime(&(inode->timestamp.accessed));
+   char *modified_str = ctime(&(inode->timestamp.modified));
+
+   printf("\n%s\n", inode->fileName);
    printf("Created: %s\n", created_str);
    printf("Accessed: %s\n", accessed_str);
    printf("Modified: %s\n", modified_str);
