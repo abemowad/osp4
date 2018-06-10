@@ -150,13 +150,12 @@ int getMaxFP(fileDescriptor FD)
    inodeBlock = diskTable[mountedDisk].inodeTable[FD];
 
    /* find number of blocks to skip over block detail bytes for fp */
-   fprintf(stderr, "filesize: %d\n", inodeBlock.fileSize);
    numBlocks = inodeBlock.fileSize / EXTENT_EMPTY_BYTES + 1;
    if (inodeBlock.fileSize % EXTENT_EMPTY_BYTES == 0)
       numBlocks -= 1;
 
    maxFP = inodeBlock.startFP + inodeBlock.fileSize +
-      (numBlocks - 1) * BLOCK_DETAIL_BYTES;
+      (numBlocks - 1) * BLOCK_DETAIL_BYTES - 1;
    
    return maxFP;
 }
@@ -177,7 +176,6 @@ int tfs_seek(fileDescriptor FD, int offset)
 
    maxFP = getMaxFP(FD); 
    FP = inodeBlock->startFP + offset + (numBlocks - 1) * BLOCK_DETAIL_BYTES;
-
    fprintf(stderr, "offset : %d\n", offset);
    fprintf(stderr, "startFP: %d\n", inodeBlock->startFP);
    fprintf(stderr, "FP : %d\n", FP);
@@ -305,8 +303,8 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
    }   
 
    inodeBlock.fileSize = size;
-   inodeBlock.startFP = inodeBlock.details.next * BLOCKSIZE + BLOCK_DETAIL_BYTES - 1;
-
+   inodeBlock.startFP = inodeBlock.details.next * BLOCKSIZE + BLOCK_DETAIL_BYTES;
+   inodeBlock.FP = inodeBlock.startFP;
    tfs_seek(FD, 0);
 
    numBlocks = size / EXTENT_EMPTY_BYTES;
@@ -386,8 +384,8 @@ int tfs_readByte(fileDescriptor FD, char *buffer)
    printf("\nCHANGING ACCESSED\n");
    diskTable[mountedDisk].inodeTable[FD].timestamp.accessed = time(0);
    
-   byteIndex = (inodeBlock.FP - 1) % EXTENT_EMPTY_BYTES;
+   byteIndex = (inodeBlock.FP - 1) % BLOCKSIZE - BLOCK_DETAIL_BYTES;
+   fprintf(stderr, "------------------------byteIndex : %d\n", byteIndex);
    *buffer = extentBlock.data[byteIndex];
-   fprintf(stderr, "data : %d\n", extentBlock.data[1]);
    return 0;
 }
