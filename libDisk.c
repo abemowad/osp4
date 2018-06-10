@@ -74,7 +74,6 @@ int openDisk(char *filename, int nBytes)
    
    if (nBytes == 0) {
       diskNum = openExistingDisk(filename);
-      printf("totalBlocks: %d\n", diskTable[diskNum].totalBlocks);
    
       if (diskNum == -1) {
          printf("No disk associated with %s\n", filename);
@@ -99,7 +98,6 @@ int openDisk(char *filename, int nBytes)
    }
    if (diskNum > -1) {
       diskTable[diskNum].isMounted = 1; 
-      printf("totalBlocks: %d\n", diskTable[diskNum].totalBlocks);
    }
    
    return diskNum;
@@ -111,7 +109,6 @@ int readBlock(int disk, int bNum, void *block)
    char *filename = diskTable[disk].filename;
    FILE *diskFile = diskTable[disk].diskFile;
 
-   printf("total disks: %d, disk: %d\n", totalDisks, disk);
    if (!(diskTable[disk].isMounted) || (disk >= totalDisks)) {
       return diskClosedErr; /* either disk not mounted or out of range of table */ }
 

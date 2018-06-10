@@ -111,6 +111,10 @@ fileDescriptor tfs_openFile(char *name)
    unsigned char index;
    fileDescriptor FD;
    InodeBlock inodeBlock;
+   
+   if (mountedDisk < 0) {
+      return noMountedDiskErr;
+   }
 
    if ((FD = findOpenFile(name)))
       return FD;
@@ -128,7 +132,10 @@ fileDescriptor tfs_openFile(char *name)
       return -1;
 
    FD = insertNewInode(inodeBlock);
+   printf("ADDING CREATED ACCESSED AND MODIFIED\n");
    diskTable[mountedDisk].inodeTable[FD].timestamp.created = time(0);
+   diskTable[mountedDisk].inodeTable[FD].timestamp.accessed = time(0);
+   diskTable[mountedDisk].inodeTable[FD].timestamp.modified = time(0);
    if (writeBlock(mountedDisk, inodeBlock.location, &inodeBlock) != 0)
       return -1; 
    return FD; 
@@ -180,8 +187,7 @@ int tfs_seek(fileDescriptor FD, int offset)
    {
       fprintf(stderr, "invalid offset\n");
       return -1;
-   }
-
+   } 
    if (writeBlock(mountedDisk, inodeBlock->location, inodeBlock) != 0)
    {
       fprintf(stderr, "Could not update inode after tfs_seek");
@@ -325,6 +331,10 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
    if (writeBlock(mountedDisk, inodeBlock->location, inodeBlock) != 0)
       return -1;
 
+   printf("%ld\n",diskTable[mountedDisk].inodeTable[FD].timestamp.modified);
+   long int myt = time(0);
+   printf("%ld\n", myt);
+   printf("CHANGING MODIFIED\n");
    diskTable[mountedDisk].inodeTable[FD].timestamp.modified = time(0);
 
    if (firstBlock)
@@ -373,6 +383,7 @@ int tfs_readByte(fileDescriptor FD, char *buffer)
    if (readBlock(mountedDisk, blockNum, &extentBlock) != 0)
       return -1;
 
+   printf("CHANGING ACCESSED\n");
    diskTable[mountedDisk].inodeTable[FD].timestamp.accessed = time(0);
    
    byteIndex = (inodeBlock->FP - 1) % EXTENT_EMPTY_BYTES;

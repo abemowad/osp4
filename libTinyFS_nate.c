@@ -17,6 +17,17 @@ int clear_block(int diskNum, int blockNum)
    return writeBlock(diskNum, blockNum, freeBlock);
 }
 
+/* Initializes the inodeTable and closedInodes within the specified disk */
+void init_diskTableArrays(int diskNum)
+{
+   int i;
+   for (i = 0; i < SUPER_TABLE_SIZE; i++) {
+      /* initializes all file size values in tables to -1 */
+      diskTable[diskNum].inodeTable[i].fileSize = -1; 
+      diskTable[diskNum].closedInodes[i].fileSize = -1; 
+   }
+}
+
 /* Initializes a superblock for the disk and writes the block to the file 
 at block 0 of the disk */
 void init_superblock(int diskNum, int nBytes)
@@ -32,10 +43,9 @@ void init_superblock(int diskNum, int nBytes)
    /* root inode will always reside in the block after super block (at block 1) */
    superblock.fileTable[0] = 1;
 
-   fprintf(stderr,"writing superblock at disk %d\n", diskNum);
-
    writeBlock(diskNum, 0, (void*)(&superblock));
    diskTable[diskNum].superBlock = superblock;
+
 }
 
 /* Initializes a root inode for the disk and writes the block to the file at 
@@ -80,12 +90,11 @@ int tfs_mkfs(char *filename, int nBytes)
       }
    }
 
-   /* initializes the root inode in the disk */
+   init_diskTableArrays(diskNum);
    init_root(diskNum);
-
    init_superblock(diskNum, nBytes);
-   
    closeDisk(diskNum); /* don't want new file system to be mounted by default */
+
    return 0;
 }
 
@@ -148,11 +157,7 @@ int update_SB_fileTable(fileDescriptor FD)
 entry */
 int tfs_closeFile(fileDescriptor FD)
 {
-   /* ---TO DO:---
-    * Adding a closed disk to the closed table has a potential for overwriting an inode
-    * with the the same file descriptor
-    */
-   int err;
+   int err, i;
    InodeBlock inode;
    
    if (mountedDisk < 0) {
@@ -163,10 +168,16 @@ int tfs_closeFile(fileDescriptor FD)
       return err;
    }
 
-   diskTable[mountedDisk].closedInodes[FD] = diskTable[mountedDisk].inodeTable[FD];
-   
    diskTable[mountedDisk].inodeTable[FD].isClosed = 1;
-   diskTable[mountedDisk].inodeTable[FD].fileSize = -1; /* signifies freed up inode */
+   /* Add newly closed file to the first spot in the disks closed inodes table */
+   for (i = 0; i < SUPER_TABLE_SIZE; i++) {
+      if (diskTable[mountedDisk].closedInodes[i].fileSize == -1){
+         diskTable[mountedDisk].closedInodes[FD] = diskTable[mountedDisk].inodeTable[FD];
+         break;
+      }
+   }
+   
+   diskTable[mountedDisk].inodeTable[FD].fileSize = -1; /* frees spot on inode table */
    inode = diskTable[mountedDisk].inodeTable[FD];
    writeBlock(mountedDisk, inode.location, &inode);
 
