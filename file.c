@@ -334,7 +334,7 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
    printf("CHANGING MODIFIED\n");
    if (writeBlock(mountedDisk, inodeBlock->location, inodeBlock) != 0)
    {
-      fprint(stderr, "failure writing inode block\n");
+      fprintf(stderr, "failure writing inode block\n");
       return -1;
    }
 
