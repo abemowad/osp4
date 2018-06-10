@@ -332,18 +332,15 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
       blockNum++;
    }
    
-   printf("CHANGING MODIFIED\n");
    if (writeBlock(mountedDisk, inodeBlock.location, &inodeBlock) != 0)
    {
       fprintf(stderr, "failure writing inode block\n");
       return -1;
    }
 
-   printf("%ld\n",diskTable[mountedDisk].inodeTable[FD].timestamp.modified);
-   long int myt = time(0);
-   printf("%ld\n", myt);
-   printf("CHANGING MODIFIED\n");
+   printf("\nCHANGING MODIFIED\n");
    diskTable[mountedDisk].inodeTable[FD].timestamp.modified = time(0);
+   return 0;
 }
 
 /* reads one byte from the file and copies it to buffer, using the current file
@@ -354,15 +351,15 @@ int tfs_readByte(fileDescriptor FD, char *buffer)
 {
    int maxFP, blockNum, byteIndex;
    FileExtentBlock extentBlock;
-   InodeBlock *inodeBlock;
+   InodeBlock inodeBlock;
 
    extentBlock = createExtentBlock(FD);
-   inodeBlock = &diskTable[mountedDisk].inodeTable[FD];
+   inodeBlock = diskTable[mountedDisk].inodeTable[FD];
 
    maxFP = getMaxFP(FD);
 
-   blockNum = inodeBlock->fileSize / EXTENT_EMPTY_BYTES;
-   if (inodeBlock->fileSize % EXTENT_EMPTY_BYTES == 0)
+   blockNum = inodeBlock.fileSize / EXTENT_EMPTY_BYTES;
+   if (inodeBlock.fileSize % EXTENT_EMPTY_BYTES == 0)
       blockNum -= 1;
 
    if (blockNum < 0)
@@ -370,14 +367,15 @@ int tfs_readByte(fileDescriptor FD, char *buffer)
       fprintf(stderr, "Nothing has been written\n");
       return -1;
    }
-   else if (inodeBlock->FP == maxFP + 1)
+   else if (inodeBlock.FP == maxFP + 1)
    {
       fprintf(stderr, "File pointer has reached EOF\n");
       return -1;
    }
 
-   inodeBlock->FP += 1;
-   if (writeBlock(mountedDisk, inodeBlock->location, inodeBlock) != 0)
+   inodeBlock.FP += 1;
+   diskTable[mountedDisk].inodeTable[FD] = inodeBlock;
+   if (writeBlock(mountedDisk, inodeBlock.location, &inodeBlock) != 0)
    {
       fprintf(stderr, "Write error\n");
       return -1;
@@ -386,10 +384,10 @@ int tfs_readByte(fileDescriptor FD, char *buffer)
    if (readBlock(mountedDisk, blockNum, &extentBlock) != 0)
       return -1;
 
-   printf("CHANGING ACCESSED\n");
+   printf("\nCHANGING ACCESSED\n");
    diskTable[mountedDisk].inodeTable[FD].timestamp.accessed = time(0);
    
-   byteIndex = (inodeBlock->FP - 1) % EXTENT_EMPTY_BYTES;
+   byteIndex = (inodeBlock.FP - 1) % EXTENT_EMPTY_BYTES;
    *buffer = extentBlock.data[byteIndex];
    fprintf(stderr, "data : %d\n", extentBlock.data[1]);
    return 0;

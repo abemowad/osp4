@@ -4,7 +4,7 @@
 #include "libTinyFS.h"
 #include "TinyFS_errno.h"
 
-int main1()
+int main()
 {
    int i, mkfsVal, mountVal, openVal, readVal, writeVal, seekVal;
    char emptyByte, firstByte, lastByte, randByte, EOFByte, 
@@ -13,7 +13,7 @@ int main1()
 
    lastByte = randByte = 0;
    for (i = 0; i < BLOCKSIZE; i++)
-      bigGoodBlock[i] = i % BLOCKSIZE;
+      bigGoodBlock[i] = i  % BLOCKSIZE;
 
    for (i = 0; i < 2 * BLOCKSIZE; i++)
       bigBadBlock[i] = i  % BLOCKSIZE;
