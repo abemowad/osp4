@@ -279,15 +279,18 @@ unsigned short findFileBlocks(int size)
  * (the start of file) when done. Returns success/error codes. */
 int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
 {
-   int i, j;
-   unsigned short numBlocks, blockNum;   
-   FileExtentBlock extentBlock;
+   int i, firstBlock, inodePrev;   
+   FileExtentBlock extentBlock, prevBlock;
    InodeBlock inodeBlock;
    
    if (diskTable[mountedDisk].inodeTable[FD].fileSize == -1 || size <= 0)
       return -1;
 
    i = 0;
+   firstBlock = 1;
+   inodePrev = 1;
+   extentBlock = createExtentBlock(FD);
+   prevBlock = extentBlock;
    inodeBlock = diskTable[mountedDisk].inodeTable[FD];
  
    if (inodeBlock.details.next == 0)
@@ -308,28 +311,26 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
    inodeBlock.startFP = inodeBlock.details.next * BLOCKSIZE + BLOCK_DETAIL_BYTES - 1;
 
    tfs_seek(FD, 0);
-
-   numBlocks = size / EXTENT_EMPTY_BYTES;
-   if (size % EXTENT_EMPTY_BYTES != 0)
-      numBlocks += 1;
-   inodeBlock.numBlocks = numBlocks;
-   diskTable[mountedDisk].inodeTable[FD] = inodeBlock;
-
-   blockNum = inodeBlock.details.next;
-   for (i = 0; i < numBlocks; i++)
+   while (size)
    {
-      extentBlock = createExtentBlock(FD);
-      extentBlock.details.next = blockNum + 1;
-
-      for (j = 0; j < EXTENT_EMPTY_BYTES; j++)
+      if (i % EXTENT_EMPTY_BYTES  == 0)
       {
-         if (!size)
-            break;
-         extentBlock.data[j] = buffer[i * EXTENT_EMPTY_BYTES + j];
-         --size;
+         inodeBlock.numBlocks++;
+
+         if (writeExtentBlock(&firstBlock, &inodePrev, 
+            &extentBlock, prevBlock, FD, inodeBlock) != 0)
+         {
+            fprintf(stderr, "failure writing file extent block\n");
+            return -1;
+         }
+
+         prevBlock = extentBlock;
+         extentBlock = createExtentBlock(FD);
       }
-      writeBlock(mountedDisk, blockNum, &extentBlock);
-      blockNum++;
+
+      extentBlock.data[i] = buffer[i];
+      i++;
+      size--;
    }
    
    printf("CHANGING MODIFIED\n");
@@ -344,6 +345,12 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
    printf("%ld\n", myt);
    printf("CHANGING MODIFIED\n");
    diskTable[mountedDisk].inodeTable[FD].timestamp.modified = time(0);
+
+   diskTable[mountedDisk].inodeTable[FD] = inodeBlock;
+   if (firstBlock)
+      return writeBlock(mountedDisk, inodeBlock.details.next, &extentBlock);
+   else
+      return writeBlock(mountedDisk, prevBlock.details.next, &extentBlock);
 }
 
 /* reads one byte from the file and copies it to buffer, using the current file
