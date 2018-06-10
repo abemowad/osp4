@@ -49,10 +49,10 @@ int main()
    printf("tfs_readByte: %d\n", readVal);
    printf("firstByte: %d\n", firstByte);
 
-   seekVal = tfs_seek(openVal, BLOCKSIZE / 2);
+   
+   seekVal = tfs_seek(openVal, BLOCKSIZE / 2 - 1);
    printf("tfs_seek: %d\n", seekVal);
 
-   /* this part isn't working yet */
    readVal = tfs_readByte(openVal, &lastByte);
    printf("tfs_readByte: %d\n", readVal);
    printf("lastByte: %d\n", lastByte);
@@ -60,6 +60,7 @@ int main()
    readVal = tfs_readByte(openVal, &EOFByte);
    printf("tfs_readByte: %d\n", readVal);
    printf("EOFByte: %d\n", EOFByte);
+   
 
    // once lastByte is correct and tfs_readByte is functioning
    
