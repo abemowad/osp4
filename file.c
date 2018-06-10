@@ -317,7 +317,10 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
 
          if (writeExtentBlock(&firstBlock, &inodePrev, 
             &extentBlock, prevBlock, FD) != 0)
+         {
+            fprintf(stderr, "failure writing file extent block\n");
             return -1;
+         }
 
          prevBlock = extentBlock;
          extentBlock = createExtentBlock(FD);
@@ -329,7 +332,10 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
    }
    
    if (writeBlock(mountedDisk, inodeBlock->location, inodeBlock) != 0)
+   {
+      fprint(stderr, "failure writing inode block\n");
       return -1;
+   }
 
    printf("%ld\n",diskTable[mountedDisk].inodeTable[FD].timestamp.modified);
    long int myt = time(0);
