@@ -79,7 +79,7 @@ int tfs_readFileInfo(fileDescriptor FD)
    printf("\n%s\n", inode.fileName);
    printf("Created: %s\n", created_str);
    printf("Accessed: %s\n", accessed_str);
-   printf("Created: %s\n", modified_str);
+   printf("Modified: %s\n", modified_str);
 
    return 0;
 }
