@@ -4,7 +4,7 @@
 
 int openDisk(char *filename, int nBytes);
 
-int main()
+int main1()
 {
    SuperBlock superblock;
    InodeBlock inodeblock;
