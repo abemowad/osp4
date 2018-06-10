@@ -137,6 +137,7 @@ int writeBlock(int disk, int bNum, void *block)
    }
 
    if (bNum >= diskTable[disk].totalBlocks) {
+      printf("total blocks: %d block: %d \n", diskTable[disk].totalBlocks, bNum);
       return outOfDiskBoundsErr; /* past the bounds of the current disk size */
    }
 
