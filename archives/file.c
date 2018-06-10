@@ -215,11 +215,9 @@ FileExtentBlock createExtentBlock(fileDescriptor FD)
 
 /* writes file contents to a block in disk */ 
 int writeExtentBlock(int *firstBlock, int *inodePrev, 
-   FileExtentBlock *extentBlock, FileExtentBlock prevBlock, fileDescriptor FD)
+   FileExtentBlock *extentBlock, FileExtentBlock prevBlock, fileDescriptor FD,
+   InodeBlock inodeBlock)
 {
-   InodeBlock inodeBlock = diskTable[mountedDisk].inodeTable[FD];
-
-   
    if (*firstBlock)
    {
       *firstBlock = 0;
@@ -283,7 +281,7 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
 {
    int i, firstBlock, inodePrev;   
    FileExtentBlock extentBlock, prevBlock;
-   InodeBlock *inodeBlock;
+   InodeBlock inodeBlock;
    
    if (diskTable[mountedDisk].inodeTable[FD].fileSize == -1 || size <= 0)
       return -1;
@@ -293,37 +291,34 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
    inodePrev = 1;
    extentBlock = createExtentBlock(FD);
    prevBlock = extentBlock;
-   inodeBlock = &diskTable[mountedDisk].inodeTable[FD];
-   
-   diskTable[mountedDisk].inodeTable[FD].timestamp.modified = time(0);
-
-
-   if (inodeBlock->details.next == 0)
+   inodeBlock = diskTable[mountedDisk].inodeTable[FD];
+ 
+   if (inodeBlock.details.next == 0)
    {
-      if (!(inodeBlock->details.next = findFileBlocks(size)))
+      if (!(inodeBlock.details.next = findFileBlocks(size)))
       {
          fprintf(stderr, "not enough free space\n");
          return -1;
       }
    }
-   else if (inodeBlock->fileSize < size)
+   else if (inodeBlock.fileSize < size)
    {
       fprintf(stderr, "file isn't large enough\n");
       return -1;
    }   
 
-   inodeBlock->fileSize = size;
-   inodeBlock->startFP = inodeBlock->details.next * BLOCKSIZE + BLOCK_DETAIL_BYTES - 1;
+   inodeBlock.fileSize = size;
+   inodeBlock.startFP = inodeBlock.details.next * BLOCKSIZE + BLOCK_DETAIL_BYTES - 1;
 
    tfs_seek(FD, 0);
    while (size)
    {
       if (i % EXTENT_EMPTY_BYTES  == 0)
       {
-         inodeBlock->numBlocks++;
+         inodeBlock.numBlocks++;
 
          if (writeExtentBlock(&firstBlock, &inodePrev, 
-            &extentBlock, prevBlock, FD) != 0)
+            &extentBlock, prevBlock, FD, inodeBlock) != 0)
          {
             fprintf(stderr, "failure writing file extent block\n");
             return -1;
@@ -339,7 +334,7 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
    }
    
    printf("CHANGING MODIFIED\n");
-   if (writeBlock(mountedDisk, inodeBlock->location, inodeBlock) != 0)
+   if (writeBlock(mountedDisk, inodeBlock.location, &inodeBlock) != 0)
    {
       fprintf(stderr, "failure writing inode block\n");
       return -1;
@@ -351,8 +346,9 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
    printf("CHANGING MODIFIED\n");
    diskTable[mountedDisk].inodeTable[FD].timestamp.modified = time(0);
 
+   diskTable[mountedDisk].inodeTable[FD] = inodeBlock;
    if (firstBlock)
-      return writeBlock(mountedDisk, inodeBlock->details.next, &extentBlock);
+      return writeBlock(mountedDisk, inodeBlock.details.next, &extentBlock);
    else
       return writeBlock(mountedDisk, prevBlock.details.next, &extentBlock);
 }
