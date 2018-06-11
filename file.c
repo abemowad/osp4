@@ -7,10 +7,7 @@
 #include "libTinyFS.h"
 #include "libDisk.h"
 
-/* ----  TO DO  ----
- * 1) closed should change FD table and closedInode table
- */ 
-
+/* finds next free block in disk and returns its block number */
 unsigned short nextFreeBlock()
 {
    int i;
@@ -82,7 +79,10 @@ unsigned char findClosedFile(char *name)
       if (diskTable[mountedDisk].closedInodes[i].fileSize == -1)
          continue;
       if (strcmp(name, diskTable[mountedDisk].closedInodes[i].fileName) == 0)
+      {
+         diskTable[mountedDisk].closedInodes[i].fileSize == -1;
          return i;
+      }
    }
    return 0;
 }
@@ -121,9 +121,10 @@ fileDescriptor tfs_openFile(char *name)
 
    if ((index = findClosedFile(name)))
    {
-      diskTable[mountedDisk].closedInodes[index].fileSize = -1;
       inodeBlock = diskTable[mountedDisk].closedInodes[index];
+      diskTable[mountedDisk].closedInodes[index].fileSize = -1;
       inodeBlock.isClosed = 0;
+      printf("hi\n");
    }
    else
       inodeBlock = createInodeBlock(name);
@@ -175,11 +176,11 @@ int tfs_seek(fileDescriptor FD, int offset)
       numBlocks -= 1;
 
    maxFP = getMaxFP(FD); 
-   FP = inodeBlock->startFP + offset + (numBlocks - 1) * BLOCK_DETAIL_BYTES;
-   fprintf(stderr, "offset : %d\n", offset);
-   fprintf(stderr, "startFP: %d\n", inodeBlock->startFP);
-   fprintf(stderr, "FP : %d\n", FP);
-   fprintf(stderr, "MAX FP : %d\n", maxFP);
+   FP = inodeBlock->startFP + offset;
+
+   if (numBlocks)
+      FP += (numBlocks - 1) * BLOCK_DETAIL_BYTES; 
+
    /* check if negative offset or FP points past last byte in file */
    if (offset < 0 || FP > maxFP)
    {
@@ -235,6 +236,8 @@ int writeExtentBlock(int *firstBlock, int *inodePrev,
    }
 }
 
+/* finds contiguous free blocks that will fit size bytes and returns the block
+ * number of the corresponding starting block */
 unsigned short findFileBlocks(int size)
 {
    unsigned short i, currIndex, prevIndex, numFreeBlocks, sizeBlocks, startBlock;
@@ -336,7 +339,7 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
       return -1;
    }
 
-   printf("\nCHANGING MODIFIED\n");
+   printf("CHANGING MODIFIED\n");
    diskTable[mountedDisk].inodeTable[FD].timestamp.modified = time(0);
    return 0;
 }
@@ -357,7 +360,6 @@ int tfs_readByte(fileDescriptor FD, char *buffer)
 
    maxFP = getMaxFP(FD);
    blockNum = inodeBlock.FP / BLOCKSIZE;
-   fprintf(stderr, "blockNum: %d\n", blockNum);
 
    if (inodeBlock.fileSize == 0)
    {
@@ -381,11 +383,10 @@ int tfs_readByte(fileDescriptor FD, char *buffer)
    if (readBlock(mountedDisk, blockNum, &extentBlock) != 0)
       return -1;
 
-   printf("\nCHANGING ACCESSED\n");
+   printf("CHANGING ACCESSED\n");
    diskTable[mountedDisk].inodeTable[FD].timestamp.accessed = time(0);
    
    byteIndex = (inodeBlock.FP - 1) % BLOCKSIZE - BLOCK_DETAIL_BYTES;
-   fprintf(stderr, "------------------------byteIndex : %d\n", byteIndex);
    *buffer = extentBlock.data[byteIndex];
    return 0;
 }
