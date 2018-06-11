@@ -10,6 +10,11 @@ same time. It shows how a new file is always assigned the lowest available
 file descriptor. Reading and writing with one file does not affect the status
 of other open files. 
 
+A third section to our driver has the program demostrating multi disk behavior.
+This includes opening and mounting 1 disk, performing IO on that disk, opening
+and mounting a second disk, performing IO and then going back to perform more IO
+on the first disk.
+
 The two additional features we added were time stamps and directory listing/renaming.
    1. Renaming a file does exactly what it sounds like: renames a file without 
       changing the contents of the file. Directory listing lists all of the 
@@ -20,6 +25,3 @@ The two additional features we added were time stamps and directory listing/rena
       and access times of a file reflect the elapsed time during the driver.
 
 As far as bugs/limitations. . .
-   
-   1. There is currently a bug where an invalid offset for tfs_seek() is generated
-      sometimes when writing to new files.

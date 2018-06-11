@@ -124,7 +124,6 @@ fileDescriptor tfs_openFile(char *name)
       inodeBlock = diskTable[mountedDisk].closedInodes[index];
       diskTable[mountedDisk].closedInodes[index].fileSize = -1;
       inodeBlock.isClosed = 0;
-      printf("hi\n");
    }
    else
       inodeBlock = createInodeBlock(name);
@@ -307,6 +306,7 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
    inodeBlock.fileSize = size;
    inodeBlock.startFP = inodeBlock.details.next * BLOCKSIZE + BLOCK_DETAIL_BYTES;
    inodeBlock.FP = inodeBlock.startFP;
+   diskTable[mountedDisk].inodeTable[FD].fileSize = inodeBlock.fileSize;
    tfs_seek(FD, 0);
 
    numBlocks = size / EXTENT_EMPTY_BYTES;
