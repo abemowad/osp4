@@ -7,10 +7,7 @@
 #include "libTinyFS.h"
 #include "libDisk.h"
 
-/* ----  TO DO  ----
- * 1) closed should change FD table and closedInode table
- */ 
-
+/* finds next free block in disk and returns its block number */
 unsigned short nextFreeBlock()
 {
    int i;
@@ -239,6 +236,8 @@ int writeExtentBlock(int *firstBlock, int *inodePrev,
    }
 }
 
+/* finds contiguous free blocks that will fit size bytes and returns the block
+ * number of the corresponding starting block */
 unsigned short findFileBlocks(int size)
 {
    unsigned short i, currIndex, prevIndex, numFreeBlocks, sizeBlocks, startBlock;
