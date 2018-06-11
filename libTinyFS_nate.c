@@ -222,7 +222,7 @@ int tfs_deleteFile(fileDescriptor FD)
    
    diskTable[mountedDisk].inodeTable[FD].isClosed = 1;
    diskTable[mountedDisk].inodeTable[FD].fileSize = -1; /* signifies freed up inode */
-
+   
    /* Frees the block that holds the inode of the deleted file */
    clear_block(mountedDisk, diskTable[mountedDisk].inodeTable[FD].location);
    diskTable[mountedDisk].superBlock.totalFileNum--;

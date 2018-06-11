@@ -39,20 +39,15 @@ int tfs_readdir()
 
    totalFiles = diskTable[mountedDisk].superBlock.totalFileNum;
 
+   printf("Displaying all file names and sizes currently in disk\n");
    while (i < SUPER_TABLE_SIZE) {
 
       /* file exists (however may be closed) */
       inode = diskTable[mountedDisk].inodeTable[i];
       if (inode.fileSize > -1) {
          printf("Filename: %s\n", inode.fileName);
-         printf("File size: %d bytes\n", inode.fileSize);
+         printf("File size: %d bytes\n\n", inode.fileSize);
 
-         if (inode.isClosed) {
-            printf("Closed\n\n");
-         }
-         else {
-            printf("Open\n\n");
-         }
 
       }
       i++; 
