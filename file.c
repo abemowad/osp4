@@ -133,7 +133,6 @@ fileDescriptor tfs_openFile(char *name)
       return -1;
 
    FD = insertNewInode(inodeBlock);
-   printf("ADDING CREATED ACCESSED AND MODIFIED\n");
    diskTable[mountedDisk].inodeTable[FD].timestamp.created = time(0);
    diskTable[mountedDisk].inodeTable[FD].timestamp.accessed = time(0);
    diskTable[mountedDisk].inodeTable[FD].timestamp.modified = time(0);
@@ -339,7 +338,6 @@ int tfs_writeFile(fileDescriptor FD, char *buffer, int size)
       return -1;
    }
 
-   printf("CHANGING MODIFIED\n");
    diskTable[mountedDisk].inodeTable[FD].timestamp.modified = time(0);
    return 0;
 }
@@ -383,7 +381,6 @@ int tfs_readByte(fileDescriptor FD, char *buffer)
    if (readBlock(mountedDisk, blockNum, &extentBlock) != 0)
       return -1;
 
-   printf("CHANGING ACCESSED\n");
    diskTable[mountedDisk].inodeTable[FD].timestamp.accessed = time(0);
    
    byteIndex = (inodeBlock.FP - 1) % BLOCKSIZE - BLOCK_DETAIL_BYTES;

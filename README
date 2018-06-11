@@ -3,9 +3,23 @@ Nathaniel Furbeyre
 
 Our TinyFS implemenation appears to be fully functional. The Single File Driver
 demonstrates opening, closing, deleting, reopening, reading, writing, and 
-seeking of a single file. The behavior is as expect. Similarly, for . . .
-Driver . . .
+seeking of a single file. The behavior is as expect. 
+
+Similarly, for the Multi File Driver demonstrates opening multiple files at the
+same time. It shows how a new file is always assigned the lowest available 
+file descriptor. Reading and writing with one file does not affect the status
+of other open files. 
 
 The two additional features we added were time stamps and directory listing/renaming.
+   1. Renaming a file does exactly what it sounds like: renames a file without 
+      changing the contents of the file. Directory listing lists all of the 
+      open files in the disk, as well as the file size for each file in bytes.
+   2. Time stamps show the created, modified and accessed times for each of 
+      the file. In order to demonstrate the functionality sleep() is called. 
+      This causes pauses in the execution of the program. The created, modified 
+      and access times of a file reflect the elapsed time during the driver.
 
 As far as bugs/limitations. . .
+   
+   1. There is currently a bug where an invalid offset for tfs_seek() is generated
+      sometimes when writing to new files.

@@ -54,7 +54,7 @@ typedef struct
 /* superblock block - block type #1. contains pointer to root inode, 
  * the number of the last file created in the file system, a boolean
  * to check if the file is closed, and the number of blocks in the disk. */
-typedef struct
+typedef struct SuperBlock
 {
    BlockDetails details;
    unsigned short rootInodeBlock;

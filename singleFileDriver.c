@@ -4,11 +4,7 @@
 #include "libTinyFS.h"
 #include "TinyFS_errno.h"
 
-<<<<<<< HEAD
-int main1()
-=======
 void singleFileDriver()
->>>>>>> 88ec168cec563cf18ea2668abc915c403bf4b2db
 {
    int i, mkfsVal, mountVal, openVal, closeVal, readVal, writeVal, deleteVal,
       seekVal;

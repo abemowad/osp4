@@ -10,8 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "TinyFS_errno.h"
 #include "block.h"
+#include "TinyFS_errno.h"
 
 #define DEFAULT_DISK_SIZE  10240
 #define DEFAULT_DISK_NAME  "tinyFSDisk"

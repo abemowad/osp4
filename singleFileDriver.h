@@ -1,5 +1,5 @@
-#ifndef BLOCK_H
-#define BLOCK_H
+#ifndef SINGLE_FILE_DRIVER_H
+#define SINGLE_FILE_DRIVER_H
 
 void singleFileDriver();
 
